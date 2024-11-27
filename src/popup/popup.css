@@ -1,0 +1,214 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateY(10px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+body {
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+  margin: 0;
+  padding: 0;
+  width: 320px;
+  background: #f8fafc;
+  color: #1e293b;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.popup-container {
+  padding: 16px;
+  animation: fadeIn 0.3s ease-out;
+}
+
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.logo {
+  width: 120px;
+  height: auto;
+}
+
+.icon-button {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  transition: background-color 0.2s;
+  border-radius: 50%;
+}
+
+.icon-button:hover {
+  background-color: #e2e8f0;
+}
+
+.icon-button svg {
+  stroke: #64748b;
+}
+
+.divider {
+  height: 1px;
+  background-color: #e2e8f0;
+  margin-bottom: 16px;
+}
+
+.select-heading {
+  font-size: 14px;
+  color: #64748b;
+  margin-bottom: 12px;
+  font-weight: 500;
+}
+
+.select-button {
+  background: #3b82f6;
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  transition: background-color 0.2s, transform 0.1s;
+  margin-bottom: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+.select-button:hover {
+  background-color: #2563eb;
+}
+
+.select-button:active {
+  transform: translateY(1px);
+}
+
+.select-button svg {
+  margin-right: 8px;
+}
+
+.markdown-heading {
+  font-size: 14px;
+  color: #64748b;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.output-container {
+  position: relative;
+  margin-bottom: 20px;
+  animation: slideIn 0.3s ease-out;
+}
+
+.markdown-output {
+  width: 100%;
+  height: 120px;
+  resize: none;
+  padding: 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-family: "Fira Code", monospace;
+  font-size: 12px;
+  line-height: 1.5;
+  box-sizing: border-box;
+  background-color: #f1f5f9;
+  transition: border-color 0.2s;
+}
+
+.markdown-output:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.copy-button,
+.clear-button {
+  position: absolute;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  cursor: pointer;
+  padding: 4px;
+  transition: background-color 0.2s, transform 0.1s;
+}
+
+.copy-button {
+  top: 8px;
+  right: 8px;
+}
+
+.clear-button {
+  top: 8px;
+  right: 40px;
+}
+
+.copy-button:hover,
+.clear-button:hover {
+  background-color: #f1f5f9;
+}
+
+.copy-button:active,
+.clear-button:active {
+  transform: translateY(1px);
+}
+
+.copy-button svg,
+.clear-button svg {
+  stroke: #64748b;
+}
+
+.button-group {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.action-button {
+  flex: 1;
+  background: #f1f5f9;
+  color: #1e293b;
+  border: 1px solid #e2e8f0;
+  padding: 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s, transform 0.1s;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+.action-button:hover {
+  background-color: #e2e8f0;
+}
+
+.action-button:active {
+  transform: translateY(1px);
+}
+
+.action-button svg {
+  margin-bottom: 4px;
+}
