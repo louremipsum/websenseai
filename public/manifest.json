@@ -3,15 +3,23 @@
   "name": "websenseai",
   "description": "Know what is happening on your screen using Chrome's built-in AI",
   "version": "1.0",
-  "permissions": ["activeTab", "scripting"],
+  "permissions": ["activeTab", "scripting", "clipboardWrite", "storage"],
   "background": {
     "service_worker": "background.js"
   },
   "action": {
+    "default_popup": "popup/popup.html",
     "default_icon": {
       "16": "images/logo16.png",
       "48": "images/logo48.png",
       "128": "images/logo128.png"
     }
-  }
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["scripts//content.js"]
+    }
+  ],
+  "host_permissions": ["<all_urls>"]
 }
