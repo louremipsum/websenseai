@@ -1,0 +1,22 @@
+{
+  "name": "websenseai",
+  "version": "1.0.0",
+  "description": "Know what is happening on your screen using Chrome's built-in AI",
+  "main": "index.js",
+  "scripts": {
+    "build": "webpack --config webpack/webpack.config.js"
+  },
+  "author": "Vinayak Nigam",
+  "license": "ISC",
+  "dependencies": {
+    "chrome-types": "^0.1.322"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.0.287",
+    "copy-webpack-plugin": "^12.0.2",
+    "ts-loader": "^9.5.1",
+    "typescript": "^5.7.2",
+    "webpack": "^5.96.1",
+    "webpack-cli": "^5.1.4"
+  }
+}
