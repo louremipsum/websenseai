@@ -3,12 +3,19 @@
   "name": "websenseai",
   "description": "Know what is happening on your screen using Chrome's built-in AI",
   "version": "1.0",
-  "permissions": ["activeTab", "scripting", "clipboardWrite", "storage"],
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "clipboardWrite",
+    "storage",
+    "tabs",
+    "aiLanguageModelOriginTrial"
+  ],
   "background": {
     "service_worker": "background.js"
   },
   "action": {
-    "default_popup": "popup/popup.html",
+    "default_popup": "/popup/popup.html",
     "default_icon": {
       "16": "images/logo16.png",
       "48": "images/logo48.png",
@@ -18,8 +25,12 @@
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["scripts//content.js"]
+      "js": ["scripts/content.js"],
+      "run_at": "document_end"
     }
+  ],
+  "trial_tokens": [
+    "Atve7Ax7UR2S95m16thnWIIABzdzUf1egSGoZIvBfpcF7vJbr/Yu7KC/euJ5mTteVaf2F4Hh743zYZ9ECf68YgAAAAB4eyJvcmlnaW4iOiJjaHJvbWUtZXh0ZW5zaW9uOi8vb2xraWtiZmZtY2twY2xvbm1icGxobHBmZWFvbWJnZ2IiLCJmZWF0dXJlIjoiQUlQcm9tcHRBUElGb3JFeHRlbnNpb24iLCJleHBpcnkiOjE3NjA0ODYzOTl9"
   ],
   "host_permissions": ["<all_urls>"]
 }
