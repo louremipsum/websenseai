@@ -145,19 +145,6 @@ header {
   transform: translateX(-2px);
 }
 
-.context-pill {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: var(--muted);
-  border-radius: 9999px;
-  padding: 0.25rem 0.75rem;
-  margin: 0.5rem 1rem;
-  font-size: 0.875rem;
-  color: var(--muted-foreground);
-  animation: slideIn 0.3s ease-out 0.1s both;
-}
-
 .context-info {
   display: flex;
   align-items: center;
@@ -385,16 +372,6 @@ header {
   padding: 0.5rem;
 }
 
-.context-pill {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: var(--secondary);
-  padding: 0.5rem;
-  border-radius: var(--radius);
-  animation: slideIn 0.3s ease-out;
-}
-
 .context-title {
   font-size: 0.875rem;
   color: var(--foreground);
@@ -402,6 +379,13 @@ header {
   text-overflow: ellipsis;
   white-space: nowrap;
   max-width: 200px;
+}
+
+.no-context {
+  text-align: center;
+  color: var(--text-secondary);
+  padding: 1rem;
+  font-style: italic;
 }
 
 .context-pills-container {
@@ -413,9 +397,66 @@ header {
   overflow-y: auto;
 }
 
-.no-context {
-  text-align: center;
-  color: var(--text-secondary);
-  padding: 1rem;
-  font-style: italic;
+.context-pill {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  transition: all 0.2s ease-in-out;
+}
+
+.context-pill.active {
+  background-color: hsl(var(--primary) / 0.1);
+  color: hsl(var(--primary));
+}
+
+.context-pill:not(.active) {
+  background-color: hsl(var(--muted));
+  color: hsl(var(--muted-foreground));
+}
+
+.context-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.context-title {
+  font-weight: 500;
+}
+
+.context-actions {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 9999px;
+  background: transparent;
+  color: inherit;
+  transition: all 0.2s ease-in-out;
+}
+
+.icon-button:hover {
+  background-color: hsl(var(--muted));
+}
+
+.icon-button svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.delete-context {
+  color: hsl(var(--destructive));
+}
+
+.delete-context:hover {
+  background-color: hsl(var(--destructive) / 0.1);
 }
