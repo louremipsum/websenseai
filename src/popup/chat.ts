@@ -155,8 +155,6 @@ document.addEventListener("DOMContentLoaded", () => {
       alert("Maximum 3 contexts allowed. Remove one to add new.");
       return;
     }
-    // Save current window state
-    chrome.storage.local.set({ lastWindow: "chat" });
     chrome.runtime.sendMessage({ type: "startDOMSelection" });
   });
 
@@ -190,7 +188,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   elements.backButton.addEventListener("click", () => {
-    chrome.action.setPopup({ popup: "popup.html" });
+    chrome.action.setPopup({ popup: "popup/popup.html" });
     window.location.href = "popup.html";
   });
 
