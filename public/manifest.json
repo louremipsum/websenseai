@@ -9,7 +9,8 @@
     "clipboardWrite",
     "storage",
     "tabs",
-    "aiLanguageModelOriginTrial"
+    "aiLanguageModelOriginTrial",
+    "notifications"
   ],
   "background": {
     "service_worker": "background.js"
@@ -30,7 +31,7 @@
     }
   ],
   "trial_tokens": [
-    "Atve7Ax7UR2S95m16thnWIIABzdzUf1egSGoZIvBfpcF7vJbr/Yu7KC/euJ5mTteVaf2F4Hh743zYZ9ECf68YgAAAAB4eyJvcmlnaW4iOiJjaHJvbWUtZXh0ZW5zaW9uOi8vb2xraWtiZmZtY2twY2xvbm1icGxobHBmZWFvbWJnZ2IiLCJmZWF0dXJlIjoiQUlQcm9tcHRBUElGb3JFeHRlbnNpb24iLCJleHBpcnkiOjE3NjA0ODYzOTl9"
+    "Atve7Ax7UR2S95m16thnWIIABzdzUf1egSGoZIvBfpcF7vJbr/Yu7KC/Atve7Ax7UR2S95m16thnWIIABzdzUf1egSGoZIvBfpcF7vJbr/Yu7KC/euJ5mTteVaf2F4Hh743zYZ9ECf68YgAAAAB4eyJvcmlnaW4iOiJjaHJvbWUtZXh0ZW5zaW9uOi8vb2xraWtiZmZtY2twY2xvbm1icGxobHBmZWFvbWJnZ2IiLCJmZWF0dXJlIjoiQUlQcm9tcHRBUElGb3JFeHRlbnNpb24iLCJleHBpcnkiOjE3NjA0ODYzOTl9"
   ],
   "host_permissions": ["<all_urls>"]
 }
