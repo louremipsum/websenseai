@@ -53,7 +53,7 @@ document.addEventListener("DOMContentLoaded", () => {
   clearMarkdownButton.addEventListener("click", handleClearMarkdown);
   chatButton.addEventListener("click", () => changePopup("chat.html"));
   summarizeButton.addEventListener("click", () =>
-    alert("Summarize functionality not implemented yet.")
+    changePopup("summarizer.html")
   );
   translateButton.addEventListener("click", () =>
     alert("Translate functionality not implemented yet.")
@@ -101,10 +101,10 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function changePopup(htmlFile: string): void {
-    const popupPath = `/popup/${htmlFile}`;
-    // chrome.storage.local.set({ currentPage: popupPath });
-    // chrome.action.setPopup({ popup: popupPath });
-    window.location.href = htmlFile;
+    const popupPath = `popup/${htmlFile}`;
+    chrome.action.setPopup({ popup: popupPath }, () => {
+      window.location.href = htmlFile;
+    });
   }
 
   // Listen for messages from the content script
