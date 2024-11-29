@@ -56,7 +56,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Context management functions
   function updateContextState(newContexts: Context[]) {
-    console.log("Updating contexts:", newContexts); // Debug log
+    console.log("Updating contexts:", newContexts);
     contexts = newContexts;
     chrome.storage.local.set({ contexts: newContexts }, () => {
       if (chrome.runtime.lastError) {
@@ -71,35 +71,23 @@ document.addEventListener("DOMContentLoaded", () => {
     const pill = document.createElement("div");
     pill.className = `context-pill ${context.isActive ? "active" : ""}`;
     pill.innerHTML = `
-       <div class="context-info">
-      <svg class="clip-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-          d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/>
-      </svg>
-      <span class="context-title">Context #${context.markdown.slice(-4)}</span>
-    </div>
+      <div class="context-info">
+        <span class="context-title">Context ${context.markdown.slice(-4)}</span>
+      </div>
       <div class="context-actions">
-        <button class="icon-button toggle-context ${
-          context.isActive ? "active" : ""
-        }" data-id="${context.id}">
+        <button class="icon-button toggle-context" data-id="${
+          context.id
+        }" aria-label="${context.isActive ? "Deactivate" : "Activate"} context">
           ${
             context.isActive
-              ? `
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2zm-9 14l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-            </svg>
-          `
-              : `
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-            </svg>
-          `
+              ? `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg>`
+              : `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/></svg>`
           }
         </button>
-        <button class="icon-button delete-context" data-id="${context.id}">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-          </svg>
+        <button class="icon-button delete-context" data-id="${
+          context.id
+        }" aria-label="Delete context">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
         </button>
       </div>
     `;
@@ -167,11 +155,13 @@ document.addEventListener("DOMContentLoaded", () => {
       alert("Maximum 3 contexts allowed. Remove one to add new.");
       return;
     }
+    // Save current window state
+    chrome.storage.local.set({ lastWindow: "chat" });
     chrome.runtime.sendMessage({ type: "startDOMSelection" });
   });
 
   // Handle context actions (toggle/delete)
-  elements.contextContainer.addEventListener("click", (e) => {
+  elements.contextContainer.addEventListener("click", async (e) => {
     const target = e.target as HTMLElement;
     const button = target.closest("button");
     if (!button) return;
@@ -180,13 +170,22 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!contextId) return;
 
     if (button.classList.contains("delete-context")) {
-      updateContextState(contexts.filter((c) => c.id !== contextId));
+      console.log("Deleting context:", contextId);
+      const newContexts = contexts.filter((c) => c.id !== contextId);
+      console.log("New contexts after deletion:", newContexts);
+
+      try {
+        await chrome.storage.local.set({ contexts: newContexts });
+        contexts = newContexts;
+        updateContextPills();
+      } catch (error) {
+        console.error("Error deleting context:", error);
+      }
     } else if (button.classList.contains("toggle-context")) {
-      updateContextState(
-        contexts.map((c) =>
-          c.id === contextId ? { ...c, isActive: !c.isActive } : c
-        )
+      const updatedContexts = contexts.map((c) =>
+        c.id === contextId ? { ...c, isActive: !c.isActive } : c
       );
+      updateContextState(updatedContexts);
     }
   });
 
@@ -214,11 +213,9 @@ document.addEventListener("DOMContentLoaded", () => {
     addMessageToChat("user", message);
     elements.chatInput.value = "";
 
-    const prompt = buildPrompt(message);
     let accumulatedResponse = "";
     let previousChunk = "";
 
-    // Create message container for streaming
     const messageElement = document.createElement("div");
     messageElement.classList.add("message", "ai-message");
     messageElement.innerHTML = '<div class="message-content"></div>';
@@ -242,6 +239,13 @@ document.addEventListener("DOMContentLoaded", () => {
         temperature: 1,
       });
 
+      // Add context overflow listener
+      session.addEventListener("contextoverflow", () => {
+        console.warn("Context overflow detected!");
+      });
+
+      // Build prompt with token checking
+      const prompt = await buildPrompt(message, session);
       const stream = await session.promptStreaming(prompt);
 
       for await (const chunk of stream) {
@@ -258,7 +262,14 @@ document.addEventListener("DOMContentLoaded", () => {
       session.destroy();
     } catch (error) {
       console.error("Error:", error);
-      contentElement.innerHTML = "Sorry, I couldn't process your request.";
+      if (
+        error instanceof DOMException &&
+        error.name === "QuotaExceededError"
+      ) {
+        contentElement.innerHTML = "Sorry, the message is too long to process.";
+      } else {
+        contentElement.innerHTML = "Sorry, I couldn't process your request.";
+      }
     } finally {
       setLoadingState(false);
       elements.chatMessages.scrollTop = elements.chatMessages.scrollHeight;
@@ -267,79 +278,124 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const style = document.createElement("style");
   style.textContent = `
-    .context-pill.active {
-      background: var(--primary);
-      color: var(--primary-foreground);
+    .context-pill {
+      display: flex;
+      align-items: center;
+      padding: 0.5rem;
+      margin-bottom: 0.5rem;
+      border-radius: var(--radius);
+      background: var(--secondary);
+      transition: all 0.2s ease;
     }
-    
-    .loading-icon {
-      animation: spin 1s linear infinite;
-      width: 1.25rem;
-      height: 1.25rem;
+  
+    .context-info {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+      gap: 0.5rem;
     }
-    
-    @keyframes spin {
-      from { transform: rotate(0deg); }
-      to { transform: rotate(360deg); }
+  
+    .context-title {
+      font-size: 0.875rem;
+      color: var(--foreground);
     }
-
+  
+    .context-actions {
+      display: flex;
+      gap: 0.25rem;
+    }
+  
+    .toggle-context {
+      padding: 0.25rem;
+      border-radius: var(--radius);
+      background: var(--muted);
+      transition: all 0.2s ease;
+    }
+  
     .toggle-context.active {
       background: var(--primary);
       color: var(--primary-foreground);
     }
-
-    /* Markdown Styles */
-    .message-content h1,h2,h3 { margin: 0.5em 0; font-weight: bold; }
-    .message-content h1 { font-size: 1.4em; }
-    .message-content h2 { font-size: 1.2em; }
-    .message-content h3 { font-size: 1.1em; }
-    .message-content code { 
-      background: var(--secondary);
-      padding: 0.2em 0.4em;
-      border-radius: 3px;
-      font-family: monospace;
+  
+    .toggle-context:not(.active) {
+      background: var(--muted);
+      color: var(--muted-foreground);
     }
-    .message-content pre code {
-      display: block;
-      padding: 1em;
-      overflow-x: auto;
+  
+    .delete-context {
+      padding: 0.25rem;
+      border-radius: var(--radius);
+      color: var(--destructive);
+      transition: all 0.2s ease;
+    }
+  
+    .delete-context:hover {
+      background: var(--destructive);
+      color: var(--destructive-foreground);
+    }
+  
+    .icon-button svg {
+      width: 1rem;
+      height: 1rem;
     }
   `;
   document.head.appendChild(style);
 
-  // Handle context deletion
-  elements.contextContainer.addEventListener("click", (e) => {
-    const target = e.target as HTMLElement;
-    const button = target.closest("button");
-    if (!button) return;
-
-    const contextId = button.dataset.id;
-    if (!contextId) return;
-
-    if (button.classList.contains("delete-context")) {
-      console.log("Deleting context:", contextId); // Debug log
-      const newContexts = contexts.filter((c) => c.id !== contextId);
-      console.log("New contexts:", newContexts); // Debug log
-      updateContextState(newContexts);
-    } else if (button.classList.contains("toggle-context")) {
-      updateContextState(
-        contexts.map((c) =>
-          c.id === contextId ? { ...c, isActive: !c.isActive } : c
-        )
-      );
-    }
-  });
-
   // Build prompt based on active contexts
-  function buildPrompt(message: string): string {
+  async function buildPrompt(message: string, session: any): Promise<string> {
     const activeContexts = contexts.filter((c) => c.isActive);
     if (activeContexts.length === 0) return message;
 
-    return `Given these contexts:\n${activeContexts
+    // Build potential prompt
+    const potentialPrompt = `Given these contexts:\n${activeContexts
       .map((c, index) => `#${index + 1}:\n${c.markdown}`)
       .join(
         "\n\n"
       )}\n\nPlease answer the following question:\n${message} using the context above.`;
+
+    try {
+      // Check token count
+      const tokenCount = await session.countPromptTokens(potentialPrompt);
+
+      if (tokenCount > session.tokensLeft) {
+        console.warn(
+          `Token limit exceeded: ${tokenCount}/${session.maxTokens}`
+        );
+
+        // Try removing contexts one by one until it fits
+        for (let i = activeContexts.length - 1; i >= 0; i--) {
+          const reducedContexts = activeContexts.slice(0, i);
+          const reducedPrompt = `Given these contexts:\n${reducedContexts
+            .map((c, index) => `#${index + 1}:\n${c.markdown}`)
+            .join(
+              "\n\n"
+            )}\n\nPlease answer the following question:\n${message} using the context above.`;
+
+          const reducedTokenCount = await session.countPromptTokens(
+            reducedPrompt
+          );
+
+          if (reducedTokenCount <= session.tokensLeft) {
+            console.warn(
+              `Reduced contexts to fit token limit. Using ${i} contexts.`
+            );
+            return reducedPrompt;
+          }
+        }
+
+        // If still too long, just use the message
+        console.warn(
+          "All contexts removed due to token limit. Using only message."
+        );
+        return message;
+      }
+
+      return potentialPrompt;
+    } catch (error) {
+      console.error("Error counting tokens:", error);
+      return message; // Fallback to just the message
+    }
   }
 
   // Initialize contexts from storage
@@ -363,27 +419,37 @@ document.addEventListener("DOMContentLoaded", () => {
     elements.chatMessages.scrollTop = elements.chatMessages.scrollHeight;
   }
 
-  function updateContexts(newContexts: Context[]): void {
-    chrome.storage.local.set({ contexts: newContexts }, () => {
-      if (chrome.runtime.lastError) {
-        console.error("Error saving contexts:", chrome.runtime.lastError);
-        return;
-      }
-      contexts = newContexts;
-      updateContextPills();
-    });
-  }
-
   // Listen for new element selections
   chrome.runtime.onMessage.addListener((message) => {
     if (message.type === "elementSelected" && message.markdown) {
-      console.log("Received markdown:", message.markdown); // Debug log
+      console.log("Received markdown:", message.markdown);
       const newContext: Context = {
         id: Date.now().toString(),
         markdown: message.markdown,
         isActive: true,
       };
       updateContextState([...contexts, newContext]);
+    }
+  });
+
+  chrome.storage.local.get(["elementSelection", "contexts"], (result) => {
+    // Initialize existing contexts
+    if (result.contexts) {
+      contexts = result.contexts;
+      updateContextPills();
+    }
+
+    // Handle new element selection if exists
+    if (result.elementSelection?.markdown) {
+      const newContext: Context = {
+        id: Date.now().toString(),
+        markdown: result.elementSelection.markdown,
+        isActive: true,
+      };
+      updateContextState([...contexts, newContext]);
+
+      // Clear the elementSelection after adding to context
+      chrome.storage.local.remove("elementSelection");
     }
   });
 
