@@ -127,3 +127,17 @@ document.addEventListener("DOMContentLoaded", () => {
     }s both`;
   });
 });
+
+document.addEventListener("DOMContentLoaded", () => {
+  const markdownOutput = document.getElementById(
+    "markdown-output"
+  ) as HTMLTextAreaElement;
+
+  if (markdownOutput) {
+    chrome.storage.local.get(["elementSelection"], (result) => {
+      if (result.elementSelection?.markdown) {
+        markdownOutput.value = result.elementSelection.markdown;
+      }
+    });
+  }
+});
