@@ -1,39 +1,135 @@
+interface SummarizerOptions {
+  sharedContext?: string;
+  type: "key-points" | "tl;dr" | "teaser" | "headline";
+  format: "markdown" | "plain-text";
+  length: "short" | "medium" | "long";
+}
+
+interface ElementSelection {
+  markdown: string;
+  html: string;
+}
+
+let summarizer: any;
+
+async function initializeSummarizer() {
+  // @ts-ignore
+  const available = (await self.ai.summarizer.capabilities()).available;
+  if (available === "no") {
+    console.error("The Summarizer API isn't usable.");
+    return;
+  }
+
+  const options: SummarizerOptions = {
+    type: "key-points",
+    format: "markdown",
+    length: "medium",
+  };
+
+  if (available === "readily") {
+    // @ts-ignored
+    summarizer = await self.ai.summarizer.create(options);
+  } else {
+    // @ts-ignored
+    summarizer = await self.ai.summarizer.create(options);
+    summarizer.addEventListener("downloadprogress", (e: ProgressEvent) => {
+      console.log(e.loaded, e.total);
+    });
+    await summarizer.ready;
+  }
+}
+
+// function setLoadingState(isLoading: boolean) {
+//   const generateButton = document.getElementById(
+//     "generate-button"
+//   ) as HTMLButtonElement;
+//   const spinnerIcon = generateButton.querySelector("svg");
+//   if (isLoading) {
+//     generateButton.disabled = true;
+//     spinnerIcon?.classList.remove("hidden");
+//   } else {
+//     generateButton.disabled = false;
+//     spinnerIcon?.classList.add("hidden");
+//   }
+// }
+
+async function processContent(text: string, options: SummarizerOptions) {
+  setLoadingState(true);
+  const outputTextArea = document.getElementById(
+    "output"
+  ) as HTMLTextAreaElement;
+  const targetLanguage = (
+    document.getElementById("target-language") as HTMLSelectElement
+  ).value;
+
+  try {
+    if (!summarizer) {
+      await initializeSummarizer();
+    }
+
+    // Update summarizer options
+    await summarizer.setOptions(options);
+
+    // Generate summary
+    const summary = await summarizer.summarize(text);
+
+    // Translate summary if needed
+    if (targetLanguage !== "en") {
+      // @ts-ignore
+      const translation = await self.ai.translation.translate(
+        summary,
+        targetLanguage
+      );
+      outputTextArea.value = translation;
+    } else {
+      outputTextArea.value = summary;
+    }
+  } catch (error) {
+    console.error("Error processing content:", error);
+    outputTextArea.value =
+      "An error occurred while processing the content. Please try again.";
+  } finally {
+    setLoadingState(false);
+  }
+}
+
 document.addEventListener("DOMContentLoaded", async () => {
   const backButton = document.getElementById(
     "back-button"
   ) as HTMLButtonElement;
+  const closeButton = document.getElementById(
+    "close-button"
+  ) as HTMLButtonElement;
   const selectButton = document.getElementById(
     "select-element"
   ) as HTMLButtonElement;
-  const targetLanguage = document.getElementById(
-    "target-language"
-  ) as HTMLSelectElement;
+  const markdownOutput = document.getElementById(
+    "markdown-output"
+  ) as HTMLTextAreaElement;
   const summaryType = document.getElementById(
     "summary-type"
   ) as HTMLSelectElement;
-  const detectedLanguageSpan = document.getElementById(
-    "detected-language"
-  ) as HTMLSpanElement;
-  const output = document.getElementById("output") as HTMLTextAreaElement;
+  const summaryFormat = document.getElementById(
+    "summary-format"
+  ) as HTMLSelectElement;
+  const summaryLength = document.getElementById(
+    "summary-length"
+  ) as HTMLSelectElement;
+  const summaryStyle = document.getElementById(
+    "summary-style"
+  ) as HTMLSelectElement;
+  const outputTextArea = document.getElementById(
+    "output"
+  ) as HTMLTextAreaElement;
   const copyButton = document.getElementById(
     "copy-output"
   ) as HTMLButtonElement;
-  const resetButton = document.getElementById("reset") as HTMLButtonElement;
-  const closeButton = document.getElementById(
-    "close-button"
+  const resetButton = document.getElementById(
+    "reset-button"
   ) as HTMLButtonElement;
   const generateButton = document.getElementById(
     "generate-button"
   ) as HTMLButtonElement;
-
-  let detector: any;
-  try {
-    // @ts-ignore
-    detector = await self.translation.createDetector();
-    await detector.ready;
-  } catch (err) {
-    console.error("Language detection not available:", err);
-  }
 
   backButton.addEventListener("click", () => {
     chrome.action.setPopup({ popup: "popup/popup.html" }, () => {
@@ -41,183 +137,72 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   });
 
+  closeButton.addEventListener("click", () => {
+    window.close();
+  });
+
   selectButton.addEventListener("click", () => {
     chrome.runtime.sendMessage({ type: "startDOMSelection" });
   });
 
+  chrome.storage.local.get(["selectedElement"], (result) => {
+    if (result.selectedElement && markdownOutput) {
+      markdownOutput.value = result.selectedElement;
+    }
+  });
+
   generateButton.addEventListener("click", () => {
-    const selectedText = output.value;
+    const selectedText = markdownOutput.value;
     if (selectedText) {
-      processContent(selectedText, summaryType.value);
+      const options: SummarizerOptions = {
+        type: summaryType.value as SummarizerOptions["type"],
+        format: summaryFormat.value as SummarizerOptions["format"],
+        length: summaryLength.value as SummarizerOptions["length"],
+      };
+
+      if (summaryStyle.value === "presentation") {
+        options.sharedContext =
+          "This is for a presentation. Use bullet points.";
+      } else if (summaryStyle.value === "social") {
+        options.sharedContext =
+          "This is for a social media post. Keep it concise and engaging.";
+      }
+
+      processContent(selectedText, options);
     }
   });
 
   chrome.runtime.onMessage.addListener(async (message) => {
-    if (message.type === "elementSelected") {
-      const text = message.html.replace(/<[^>]*>/g, " ").trim();
-
-      // Detect language
-      const [detection] = await detector.detect(text);
-      const sourceLanguage = detection.detectedLanguage;
-      detectedLanguageSpan.textContent = sourceLanguage;
-
-      // Create translator if needed
-      if (sourceLanguage !== targetLanguage.value) {
-        // @ts-ignore
-        const translator = await self.translation.createTranslator({
-          sourceLanguage,
-          targetLanguage: targetLanguage.value,
-        });
-        const translatedText = await translator.translate(text);
-        processContent(translatedText, summaryType.value);
-      } else {
-        processContent(text, summaryType.value);
+    if (message.type === "error") {
+      if (markdownOutput) {
+        markdownOutput.value = message.error;
       }
+      chrome.storage.local.set({ lastError: message.error });
+    }
+    if (message.type === "elementSelected") {
+      markdownOutput.value =
+        message.markdown || convertHtmlToMarkdown(message.html);
+      chrome.storage.local.set({
+        selectedElement: markdownOutput.value,
+        originalHtml: message.html,
+      });
     }
   });
 
   copyButton.addEventListener("click", async () => {
-    await navigator.clipboard.writeText(output.value);
-    copyButton.innerHTML = `
-      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <polyline points="20 6 9 17 4 12"></polyline>
-      </svg>
-    `;
+    await navigator.clipboard.writeText(outputTextArea.value);
+    copyButton.textContent = "Copied!";
     setTimeout(() => {
-      copyButton.innerHTML = `
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-        </svg>
-      `;
+      copyButton.textContent = "Copy";
     }, 2000);
   });
 
   resetButton.addEventListener("click", () => {
-    output.value = "";
-    detectedLanguageSpan.textContent = "None";
+    outputTextArea.value = "";
+    markdownOutput.value = "";
     chrome.storage.local.remove(["selectedElement", "processedContent"]);
   });
 
-  closeButton.addEventListener("click", () => {
-    window.close();
-  });
+  // Initialize summarizer
+  await initializeSummarizer();
 });
-
-function setLoadingState(isLoading: boolean) {
-  const generateButton = document.getElementById(
-    "generate-button"
-  ) as HTMLButtonElement;
-  const spinnerIcon = generateButton.querySelector("svg");
-  if (isLoading) {
-    generateButton.disabled = true;
-    spinnerIcon?.classList.remove("hidden");
-  } else {
-    generateButton.disabled = false;
-    spinnerIcon?.classList.add("hidden");
-  }
-}
-
-async function processContent(text: string, type: string) {
-  setLoadingState(true);
-  const output = document.getElementById("output") as HTMLTextAreaElement;
-  const targetLanguage = (
-    document.getElementById("target-language") as HTMLSelectElement
-  ).value;
-
-  try {
-    // Check API availability
-    // @ts-ignore
-    if (!("translation" in self) || !("createDetector" in self.translation)) {
-      throw new Error("Translation API not supported");
-    }
-
-    // Language detection
-    // @ts-ignore
-    const detector = await self.translation.createDetector();
-    const [detection] = await detector.detect(text.trim());
-    const { detectedLanguage, confidence } = detection;
-
-    // Update detected language display
-    const detectedSpan = document.getElementById(
-      "detected-language"
-    ) as HTMLSpanElement;
-    detectedSpan.textContent = `${languageTagToHumanReadable(
-      detectedLanguage,
-      "en"
-    )} (${(confidence * 100).toFixed(1)}%)`;
-
-    // Initialize AI model
-    const { available } =
-      // @ts-ignore
-      await chrome.aiOriginTrial.languageModel.capabilities();
-    if (available !== "readily") {
-      throw new Error("AI model not readily available");
-    }
-
-    // @ts-ignore
-    const session = await chrome.aiOriginTrial.languageModel.create({
-      systemPrompt:
-        type === "social"
-          ? "You are a social media content creator. Create engaging, concise posts."
-          : "You are a presentation creator. Create clear, structured bullet points.",
-      topK: 6,
-      temperature: type === "social" ? 0.8 : 0.4,
-    });
-
-    // Process based on type
-    const promptText =
-      type === "social"
-        ? `Create a social media post (max 240 chars) with hashtags from this text:\n${text}`
-        : type === "presentation"
-        ? `Create presentation bullet points from this text:\n${text}`
-        : `Summarize this text in a concise manner:\n${text}`;
-
-    // Get AI response
-    const stream = await session.promptStreaming(promptText);
-    let processedText = "";
-    let previousChunk = "";
-
-    for await (const chunk of stream) {
-      const newChunk = chunk.startsWith(previousChunk)
-        ? chunk.slice(previousChunk.length)
-        : chunk;
-      processedText += newChunk;
-      previousChunk = chunk;
-    }
-
-    // Translate if needed
-    if (detectedLanguage !== targetLanguage) {
-      if (!["en", "ja", "es", "hi"].includes(detectedLanguage)) {
-        throw new Error("Source language not supported");
-      }
-
-      // @ts-ignore
-      const translator = await self.translation.createTranslator({
-        sourceLanguage: detectedLanguage,
-        targetLanguage,
-      });
-
-      output.value = await translator.translate(processedText);
-    } else {
-      output.value = processedText;
-    }
-
-    session.destroy();
-  } catch (err) {
-    output.value = `Error: ${
-      err instanceof Error ? err.message : "Unknown error occurred"
-    }`;
-  } finally {
-    setLoadingState(false);
-  }
-}
-
-function languageTagToHumanReadable(tag: string, locale: string): string {
-  try {
-    return new Intl.DisplayNames([locale], { type: "language" }).of(tag) || tag;
-  } catch (error) {
-    console.error("Error converting language tag:", error);
-    return tag;
-  }
-}
