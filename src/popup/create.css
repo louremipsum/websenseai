@@ -112,32 +112,47 @@ header {
 
 .header-actions {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem;
+  justify-content: flex-start;
+  padding: 0.5rem 1rem;
+  gap: 0.5rem;
+  border-bottom: 1px solid var(--border);
 }
 
 .back-button {
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0.5rem;
-  border-radius: var(--radius);
-  transition: background-color 0.2s, transform 0.2s;
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.back-button:hover {
-  background-color: var(--accent);
-  transform: scale(1.05);
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  background: var(--secondary);
+  border: none;
+  border-radius: var(--radius);
+  color: var(--secondary-foreground);
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
 .back-button svg {
-  width: 1.5rem;
-  height: 1.5rem;
-  color: var(--foreground);
+  width: 20px;
+  height: 20px;
+  stroke: currentColor;
+  stroke-width: 2;
+}
+
+.add-context-button {
+  display: flex;
+  align-items: center;
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius);
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin: 0;
 }
 
 main {
