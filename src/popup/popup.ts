@@ -18,8 +18,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const summarizeButton = document.getElementById(
     "summarize-button"
   ) as HTMLButtonElement;
-  const translateButton = document.getElementById(
-    "translate-button"
+  const createButton = document.getElementById(
+    "create-button"
   ) as HTMLButtonElement;
   const closePopupButton = document.getElementById(
     "close-popup"
@@ -33,7 +33,7 @@ document.addEventListener("DOMContentLoaded", () => {
     !clearMarkdownButton ||
     !chatButton ||
     !summarizeButton ||
-    !translateButton ||
+    !createButton ||
     !closePopupButton
   ) {
     console.error("Required DOM elements not found");
@@ -55,9 +55,7 @@ document.addEventListener("DOMContentLoaded", () => {
   summarizeButton.addEventListener("click", () =>
     changePopup("summarizer.html")
   );
-  translateButton.addEventListener("click", () =>
-    alert("Translate functionality not implemented yet.")
-  );
+  createButton.addEventListener("click", () => changePopup("create.html"));
   closePopupButton.addEventListener("click", () => window.close());
 
   // Functions with proper type definitions

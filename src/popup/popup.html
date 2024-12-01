@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>WebSenseAI</title>
-    <link rel="stylesheet" href="popup.css" />
+    <link rel="stylesheet" href="styles/popup.css" />
   </head>
   <body>
     <div class="popup-container">
@@ -114,7 +114,7 @@
         </div>
 
         <div class="button-group">
-          <button id="chat-button" class="action-button">
+          <button id="chat-button" class="action-button" title="Chat with AI">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="24"
@@ -127,12 +127,17 @@
               stroke-linejoin="round"
             >
               <path
-                d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"
+                d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"
               ></path>
             </svg>
             Chat
           </button>
-          <button id="summarize-button" class="action-button">
+
+          <button
+            id="create-button"
+            class="action-button"
+            title="Create content"
+          >
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="24"
@@ -144,33 +149,36 @@
               stroke-linecap="round"
               stroke-linejoin="round"
             >
-              <line x1="17" y1="10" x2="3" y2="10"></line>
-              <line x1="21" y1="6" x2="3" y2="6"></line>
-              <line x1="21" y1="14" x2="3" y2="14"></line>
-              <line x1="17" y1="18" x2="3" y2="18"></line>
+              <path d="M12 19l7-7 3 3-7 7-3-3z"></path>
+              <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path>
+              <path d="M2 2l7.586 7.586"></path>
+              <circle cx="11" cy="11" r="2"></circle>
+            </svg>
+            Create
+          </button>
+
+          <button
+            id="summarize-button"
+            class="action-button"
+            title="Summarize content"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path
+                d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"
+              ></path>
+              <rect x="8" y="8" width="8" height="8" rx="1.5" ry="1.5"></rect>
             </svg>
             Summarize
-          </button>
-          <button id="translate-button" class="action-button">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <path d="M5 8l6 6"></path>
-              <path d="M4 14l6-6 2-3"></path>
-              <path d="M2 5h12"></path>
-              <path d="M7 2h1"></path>
-              <path d="M22 22l-5-10-5 10"></path>
-              <path d="M14 18h6"></path>
-            </svg>
-            Translate
           </button>
         </div>
       </main>
