@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "websenseai",
+  "name": "WebSense AI",
   "description": "Know what is happening on your screen using Chrome's built-in AI",
   "version": "1.0",
   "permissions": [
@@ -15,6 +15,7 @@
   "background": {
     "service_worker": "background.js"
   },
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAsO3mnUmvBWXt8tN9NuUjVqQKtqXn78zijd8A/WwShtubEN0FYk1aLIGr0YiCpUVbFFFIE4SXTf9KJUU/Ltr6GvswOxY+EIXvpDU0eUCUgmpRorr5e3SGxAEgCa6dwBitF1T8+Iurw4Si9Olp2sBu6cLmQsNajKHMX9ZDlcNeaXrPSy9mEN+RU0kBeRJSOkmRLYZg7Nh8hh1bAOolhvK512iX4ZM0hKXVusGaAH3ECepv9BhUXHAbd6NRVV1eGM32dyvdUrJ5B80abM3PAE2Pn5cKCQ8XWeVtlPpLSvt7fj5PH23uUmwbs3DxJErOljEybc4p242pXpRY7nt/PZ9dwwIDAQAB",
   "action": {
     "default_popup": "/popup/popup.html",
     "default_icon": {
@@ -31,10 +32,9 @@
     }
   ],
   "trial_tokens": [
-    "Atve7Ax7UR2S95m16thnWIIABzdzUf1egSGoZIvBfpcF7vJbr/Yu7KC/Atve7Ax7UR2S95m16thnWIIABzdzUf1egSGoZIvBfpcF7vJbr/Yu7KC/euJ5mTteVaf2F4Hh743zYZ9ECf68YgAAAAB4eyJvcmlnaW4iOiJjaHJvbWUtZXh0ZW5zaW9uOi8vb2xraWtiZmZtY2twY2xvbm1icGxobHBmZWFvbWJnZ2IiLCJmZWF0dXJlIjoiQUlQcm9tcHRBUElGb3JFeHRlbnNpb24iLCJleHBpcnkiOjE3NjA0ODYzOTl9",
-    "Ai4z0Uqy4sflinb9X0/svW4ALvdOtfwOPpTcZLNgBZ9v/RhyGD7UdUAiKqxUXy7VIHXGQoiGNiZU+9QdquPZugQAAABzeyJvcmlnaW4iOiJjaHJvbWUtZXh0ZW5zaW9uOi8vb2xraWtiZmZtY2twY2xvbm1icGxobHBmZWFvbWJnZ2IiLCJmZWF0dXJlIjoiQUlTdW1tYXJpemF0aW9uQVBJIiwiZXhwaXJ5IjoxNzUzMTQyNDAwfQ==",
-    "Akx8SKW6dmdaptgRGVEuQWNk9FHlEcj7Shk8QBUuqUovCIEt9L0ag1b/sCBhAg8p12QjILtOybGY+PMSlw+dVg8AAAB1eyJvcmlnaW4iOiJjaHJvbWUtZXh0ZW5zaW9uOi8vb2xraWtiZmZtY2twY2xvbm1icGxobHBmZWFvbWJnZ2IiLCJmZWF0dXJlIjoiTGFuZ3VhZ2VEZXRlY3Rpb25BUEkiLCJleHBpcnkiOjE3NDk1OTk5OTl9",
-    "AoN79PgtWd6M01jvq0KMsO027RGEXGZS+resu23CF0I30X7ibzSGo1n4qrhj6u4TRVI2qPWvz3ex2SBcK3XDagAAAABveyJvcmlnaW4iOiJjaHJvbWUtZXh0ZW5zaW9uOi8vb2xraWtiZmZtY2twY2xvbm1icGxobHBmZWFvbWJnZ2IiLCJmZWF0dXJlIjoiVHJhbnNsYXRpb25BUEkiLCJleHBpcnkiOjE3NTMxNDI0MDB9"
+    "Ato94VAHykepIwnHHVGUlKvmwMDDnpIvNXG+8L41Cd5ffvveNII5bSPwcy9Z0AKtg1uVBvqo4zrs8DpeX5qGzgsAAAB4eyJvcmlnaW4iOiJjaHJvbWUtZXh0ZW5zaW9uOi8vaWJvZWFuaGduamtuZGdubmlmaXBvb29sZ29vcHBtYmEiLCJmZWF0dXJlIjoiQUlQcm9tcHRBUElGb3JFeHRlbnNpb24iLCJleHBpcnkiOjE3NjA0ODYzOTl9",
+    "AsB2hwGWp16lecqeiEHYMhJkxxd0EfUg/ILgXU7CkGZEZZZnLQwDPSchXrOSr55yKwtf3NrZIUejO7lxSMw/oA4AAABveyJvcmlnaW4iOiJjaHJvbWUtZXh0ZW5zaW9uOi8vaWJvZWFuaGduamtuZGdubmlmaXBvb29sZ29vcHBtYmEiLCJmZWF0dXJlIjoiVHJhbnNsYXRpb25BUEkiLCJleHBpcnkiOjE3NTMxNDI0MDB9",
+    "Ap0+eDtr0GBgyahdDBrzYpLZnc1BoI3l0rcegKplj++vwADSHR0EiB2AwIwVQIhk26gDeNm9s2yvz6FupCUQMQ0AAABzeyJvcmlnaW4iOiJjaHJvbWUtZXh0ZW5zaW9uOi8vaWJvZWFuaGduamtuZGdubmlmaXBvb29sZ29vcHBtYmEiLCJmZWF0dXJlIjoiQUlTdW1tYXJpemF0aW9uQVBJIiwiZXhwaXJ5IjoxNzUzMTQyNDAwfQ=="
   ],
   "host_permissions": ["<all_urls>"]
 }
