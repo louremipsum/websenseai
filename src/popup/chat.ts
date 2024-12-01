@@ -19,6 +19,7 @@ interface RequiredElements {
   closeButton: HTMLButtonElement;
   addContextButton: HTMLButtonElement;
   contextContainer: HTMLDivElement;
+  accordionHeader: HTMLButtonElement;
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -39,6 +40,9 @@ document.addEventListener("DOMContentLoaded", () => {
     contextContainer: document.getElementById(
       "context-pills"
     ) as HTMLDivElement,
+    accordionHeader: document.querySelector(
+      ".accordion-header"
+    ) as HTMLButtonElement,
   };
 
   // Early validation of required elements
@@ -73,22 +77,24 @@ document.addEventListener("DOMContentLoaded", () => {
     pill.innerHTML = `
       <div class="context-info">
         <span class="context-title">Context ${context.markdown.slice(-4)}</span>
-      </div>
-      <div class="context-actions">
-        <button class="icon-button toggle-context" data-id="${
-          context.id
-        }" aria-label="${context.isActive ? "Deactivate" : "Activate"} context">
-          ${
-            context.isActive
-              ? `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg>`
-              : `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/></svg>`
-          }
-        </button>
-        <button class="icon-button delete-context" data-id="${
-          context.id
-        }" aria-label="Delete context">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
-        </button>
+        <div class="context-actions">
+          <button class="toggle-context ${
+            context.isActive ? "active" : ""
+          }" data-id="${context.id}" aria-label="${
+      context.isActive ? "Deactivate" : "Activate"
+    } context">
+            ${
+              context.isActive
+                ? `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg>`
+                : `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/></svg>`
+            }
+          </button>
+          <button class="delete-context" data-id="${
+            context.id
+          }" aria-label="Delete context">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+          </button>
+        </div>
       </div>
     `;
     return pill;
@@ -202,6 +208,20 @@ document.addEventListener("DOMContentLoaded", () => {
   elements.resetChatButton.addEventListener("click", resetChat);
   elements.exportChatButton.addEventListener("click", exportChat);
   elements.closeButton.addEventListener("click", () => window.close());
+
+  elements.accordionHeader.addEventListener("click", () => {
+    const isExpanded =
+      elements.accordionHeader.getAttribute("aria-expanded") === "true";
+    elements.accordionHeader.setAttribute(
+      "aria-expanded",
+      (!isExpanded).toString()
+    );
+    elements.contextContainer.classList.toggle("collapsed");
+  });
+
+  // Initialize accordion state
+  elements.accordionHeader.setAttribute("aria-expanded", "false");
+  elements.contextContainer.classList.add("collapsed");
 
   async function sendMessage(): Promise<void> {
     const message = elements.chatInput.value.trim();

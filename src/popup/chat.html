@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>WebSenseAI Chat</title>
-    <link rel="stylesheet" href="chat.css" />
+    <link rel="stylesheet" href="styles/chat.css" />
   </head>
   <body>
     <div class="chat-container">
@@ -47,7 +47,11 @@
             />
           </svg>
         </button>
-        <button id="add-context" class="icon-button" title="Select new element">
+        <button
+          id="add-context"
+          class="add-context-button"
+          title="Select new element"
+        >
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width="24"
@@ -62,11 +66,31 @@
               stroke-linecap="round"
             />
           </svg>
+          Add Context
         </button>
       </div>
 
-      <div id="context-pills" class="context-pills-container">
-        <!-- Dynamic context pills will be inserted here -->
+      <div class="context-accordion">
+        <button class="accordion-header">
+          <h2 class="context-heading">Context</h2>
+          <svg
+            class="accordion-arrow"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M19 9l-7 7-7-7"
+            />
+          </svg>
+        </button>
+        <div id="context-pills" class="context-pills-container collapsed">
+          <!-- Dynamic context pills will be inserted here -->
+        </div>
       </div>
 
       <div id="chat-messages" class="chat-messages"></div>

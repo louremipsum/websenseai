@@ -65,7 +65,7 @@ body {
   margin: 0;
   padding: 0;
   width: 400px;
-  height: 480px;
+  height: 510px;
   background: var(--background);
   color: var(--foreground);
 }
@@ -94,7 +94,7 @@ header {
   background: transparent;
   border: none;
   cursor: pointer;
-  padding: 0.5rem;
+  padding: 0.25rem;
   border-radius: var(--radius);
   transition: background-color 0.2s, transform 0.2s;
 }
@@ -118,13 +118,13 @@ header {
 .back-button {
   display: flex;
   align-items: center;
-  width: 15%;
-  padding: 0.5rem;
+  width: 10%;
+  padding: 0.25rem;
   background: var(--secondary);
   border: none;
   margin: 0.5rem;
   border-radius: 32px;
-  font-weight: 500;
+  font-weight: 300;
   color: var(--secondary-foreground);
   cursor: pointer;
   transition: background-color 0.2s, transform 0.2s;
@@ -143,6 +143,35 @@ header {
 
 .back-button:hover svg {
   transform: translateX(-2px);
+}
+
+.add-context-button {
+  display: flex;
+  align-items: center;
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+  border: 1px solid var(--border);
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius);
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.add-context-button:hover {
+  background-color: var(--accent);
+  color: var(--accent-foreground);
+}
+
+.add-context-button svg {
+  margin-right: 0.5rem;
+}
+
+.context-heading {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 1rem 1rem 0.5rem;
+  color: var(--primary);
 }
 
 .context-info {
@@ -266,8 +295,8 @@ header {
 }
 
 .send-button svg {
-  width: 1.25rem;
-  height: 1.25rem;
+  width: 0.75rem;
+  height: 0.75rem;
   transition: transform 0.2s;
 }
 
@@ -363,17 +392,21 @@ header {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  max-height: 2rem;
 }
 
 .context-pills {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-  padding: 0.5rem;
+  gap: 0.25rem;
+  height: 0.5rem;
+}
+.pill {
+  /* border: 1px solid var(--muted); */
 }
 
 .context-title {
-  font-size: 0.875rem;
+  font-size: 0.5rem;
   color: var(--foreground);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -388,23 +421,66 @@ header {
   font-style: italic;
 }
 
+/* width */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  background: #e2e8f0;
+  border-radius: 16px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #475569;
+  border-radius: 32px;
+  transition: all 0.2s ease-in-out;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: #1e293b;
+  border-radius: 32px;
+}
+
 .context-pills-container {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-  padding: 0.5rem;
-  max-height: 200px;
+  gap: 0.25rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  min-height: fit-content;
+  max-height: 3rem;
   overflow-y: auto;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: var(--background);
+  padding: 1rem;
+  border-bottom: 1px solid var(--border);
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+  transition: all 0.3s ease;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.context-pills-container.collapsed {
+  max-height: 0;
+  padding: 0 1rem;
+  overflow: hidden;
+  opacity: 0;
 }
 
 .context-pill {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.5rem 0.75rem;
-  border-radius: 9999px;
-  font-size: 0.875rem;
-  transition: all 0.2s ease-in-out;
+  padding: 0.5rem;
+  background: var(--secondary);
+  border-radius: var(--radius);
+  margin-bottom: 0.25rem;
 }
 
 .context-pill.active {
@@ -420,28 +496,29 @@ header {
 .context-info {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  flex: 1;
 }
 
 .context-title {
-  font-weight: 500;
+  font-size: 0.875rem;
+  color: var(--foreground);
+  margin-right: 0.5rem;
 }
 
 .context-actions {
   display: flex;
   gap: 0.25rem;
+  align-items: center;
 }
 
 .icon-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 2rem;
-  height: 2rem;
-  border-radius: 9999px;
-  background: transparent;
-  color: inherit;
-  transition: all 0.2s ease-in-out;
+  width: 1.5rem;
+  height: 1.5rem;
+  padding: 0.25rem;
+  border-radius: var(--radius);
 }
 
 .icon-button:hover {
@@ -459,4 +536,100 @@ header {
 
 .delete-context:hover {
   background-color: hsl(var(--destructive) / 0.1);
+}
+
+.context-pill {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem;
+  margin-bottom: 0.5rem;
+  border-radius: var(--radius);
+  background: var(--secondary);
+  transition: all 0.2s ease;
+}
+
+.context-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.context-title {
+  font-size: 0.875rem;
+  color: var(--foreground);
+  margin-right: 0.5rem;
+}
+
+.context-actions {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.toggle-context,
+.delete-context {
+  padding: 0.25rem;
+  border-radius: var(--radius);
+  background: var(--muted);
+  transition: all 0.2s ease;
+  display: flex;
+  height: 1.5rem;
+  width: 1.5rem;
+  align-items: center;
+  justify-content: center;
+}
+
+.toggle-context.active {
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+
+.toggle-context:not(.active) {
+  background: var(--muted);
+  color: var(--muted-foreground);
+}
+
+.delete-context:hover {
+  background: var(--destructive);
+  color: var(--destructive-foreground);
+}
+
+.context-accordion {
+  position: relative;
+  z-index: 10;
+  background: var(--background);
+  border-bottom: 1px solid var(--border);
+}
+
+.accordion-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 1rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.accordion-header:hover {
+  background: var(--secondary);
+}
+
+.context-heading {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.accordion-arrow {
+  width: 1.25rem;
+  height: 1.25rem;
+  transition: transform 0.3s ease;
+}
+
+.accordion-header[aria-expanded="true"] .accordion-arrow {
+  transform: rotate(180deg);
 }
