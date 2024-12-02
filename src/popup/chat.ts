@@ -1,6 +1,7 @@
 interface ChatMessage {
-  sender: "user" | "ai";
+  sender: "user" | "ai" | "system";
   content: string;
+  role: "user" | "assistant" | "system"; // Add role property
 }
 
 interface Context {
@@ -57,6 +58,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const elements = requiredElements as RequiredElements;
   let contexts: Context[] = [];
+  let messageHistory: ChatMessage[] = [
+    {
+      sender: "ai",
+      role: "system",
+      content: "You are a helpful and friendly assistant.",
+    },
+  ];
 
   // Context management functions
   function updateContextState(newContexts: Context[]) {
@@ -235,6 +243,13 @@ document.addEventListener("DOMContentLoaded", () => {
     addMessageToChat("user", message);
     elements.chatInput.value = "";
 
+    // Add user message to history with proper typing
+    messageHistory.push({
+      sender: "user",
+      role: "user",
+      content: message,
+    });
+
     let accumulatedResponse = "";
     let previousChunk = "";
 
@@ -254,21 +269,22 @@ document.addEventListener("DOMContentLoaded", () => {
         throw new Error("Gemini Nano model is not readily available");
       }
 
+      // Create session with updated system prompt including context
+      const systemPrompt = await buildSystemPrompt();
+      const updatedHistory = [
+        { sender: "system", role: "system", content: systemPrompt },
+        ...messageHistory.slice(1), // Skip old system prompt
+      ];
+
       // @ts-ignore
       const session = await chrome.aiOriginTrial.languageModel.create({
-        systemPrompt: "You are a helpful and friendly assistant.",
+        initialPrompts: updatedHistory,
         topK: 6,
         temperature: 1,
       });
 
-      // Add context overflow listener
-      session.addEventListener("contextoverflow", () => {
-        console.warn("Context overflow detected!");
-      });
-
-      // Build prompt with token checking
-      const prompt = await buildPrompt(message, session);
-      const stream = await session.promptStreaming(prompt);
+      // Remove old buildPrompt call since context is now in system prompt
+      const stream = await session.promptStreaming(message);
 
       for await (const chunk of stream) {
         const newChunk = chunk.startsWith(previousChunk)
@@ -279,6 +295,23 @@ document.addEventListener("DOMContentLoaded", () => {
         contentElement.innerHTML = parseMarkdown(accumulatedResponse);
         elements.chatMessages.scrollTop = elements.chatMessages.scrollHeight;
         previousChunk = chunk;
+      }
+
+      // After successful response, add AI message to history
+      messageHistory.push({
+        sender: "ai",
+        role: "assistant",
+        content: accumulatedResponse,
+      });
+
+      // Trim history if it gets too long (keeping last N messages)
+      const MAX_HISTORY = 10; // Adjust based on token limits
+      if (messageHistory.length > MAX_HISTORY + 1) {
+        // +1 for system prompt
+        messageHistory = [
+          messageHistory[0], // Keep system prompt
+          ...messageHistory.slice(-MAX_HISTORY),
+        ];
       }
 
       session.destroy();
@@ -365,59 +398,16 @@ document.addEventListener("DOMContentLoaded", () => {
   document.head.appendChild(style);
 
   // Build prompt based on active contexts
-  async function buildPrompt(message: string, session: any): Promise<string> {
+  async function buildSystemPrompt(): Promise<string> {
     const activeContexts = contexts.filter((c) => c.isActive);
-    if (activeContexts.length === 0) return message;
-
-    // Build potential prompt
-    const potentialPrompt = `Given these contexts:\n${activeContexts
-      .map((c, index) => `#${index + 1}:\n${c.markdown}`)
-      .join(
-        "\n\n"
-      )}\n\nPlease answer the following question:\n${message} using the context above.`;
-
-    try {
-      // Check token count
-      const tokenCount = await session.countPromptTokens(potentialPrompt);
-
-      if (tokenCount > session.tokensLeft) {
-        console.warn(
-          `Token limit exceeded: ${tokenCount}/${session.maxTokens}`
-        );
-
-        // Try removing contexts one by one until it fits
-        for (let i = activeContexts.length - 1; i >= 0; i--) {
-          const reducedContexts = activeContexts.slice(0, i);
-          const reducedPrompt = `Given these contexts:\n${reducedContexts
-            .map((c, index) => `#${index + 1}:\n${c.markdown}`)
-            .join(
-              "\n\n"
-            )}\n\nPlease answer the following question:\n${message} using the context above.`;
-
-          const reducedTokenCount = await session.countPromptTokens(
-            reducedPrompt
-          );
-
-          if (reducedTokenCount <= session.tokensLeft) {
-            console.warn(
-              `Reduced contexts to fit token limit. Using ${i} contexts.`
-            );
-            return reducedPrompt;
-          }
-        }
-
-        // If still too long, just use the message
-        console.warn(
-          "All contexts removed due to token limit. Using only message."
-        );
-        return message;
-      }
-
-      return potentialPrompt;
-    } catch (error) {
-      console.error("Error counting tokens:", error);
-      return message; // Fallback to just the message
+    if (activeContexts.length === 0) {
+      return "You are a helpful and friendly assistant.";
     }
+
+    return `You are a helpful and friendly assistant. Use the following contexts to inform your responses:
+${activeContexts
+  .map((c, index) => `#${index + 1}:\n${c.markdown}`)
+  .join("\n\n")}`;
   }
 
   // Initialize contexts from storage
@@ -440,19 +430,6 @@ document.addEventListener("DOMContentLoaded", () => {
     elements.chatMessages.appendChild(messageElement);
     elements.chatMessages.scrollTop = elements.chatMessages.scrollHeight;
   }
-
-  // Listen for new element selections
-  chrome.runtime.onMessage.addListener((message) => {
-    if (message.type === "elementSelected" && message.markdown) {
-      console.log("Received markdown:", message.markdown);
-      const newContext: Context = {
-        id: Date.now().toString(),
-        markdown: message.markdown,
-        isActive: true,
-      };
-      updateContextState([...contexts, newContext]);
-    }
-  });
 
   chrome.storage.local.get(["elementSelection", "contexts"], (result) => {
     // Initialize existing contexts
@@ -477,6 +454,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function resetChat(): void {
     elements.chatMessages.innerHTML = "";
+    // Reset history with fresh system prompt
+    messageHistory = [
+      {
+        sender: "ai",
+        role: "system",
+        content: "You are a helpful and friendly assistant.",
+      },
+    ];
   }
 
   function exportChat(): void {

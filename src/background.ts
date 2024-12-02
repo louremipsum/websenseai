@@ -150,13 +150,31 @@ function isRestrictedUrl(url?: string): boolean {
 
 async function injectContentScript(tabId: number): Promise<void> {
   try {
-    // Check if content script is already injected
+    // First try to ping to check if content script is already there
     await chrome.tabs.sendMessage(tabId, { type: "ping" });
-  } catch {
-    // If not injected, inject content script
+    console.log("Content script already injected");
+  } catch (error) {
+    console.log("Injecting content script");
+    // Inject the script and wait for it to be ready
     await chrome.scripting.executeScript({
       target: { tabId },
       files: ["scripts/content.js"],
+    });
+
+    // Wait for content script to be ready
+    await new Promise<void>((resolve) => {
+      const listener = (message: any, sender: any) => {
+        if (
+          message.type === "CONTENT_SCRIPT_READY" &&
+          sender.tab?.id === tabId
+        ) {
+          chrome.runtime.onMessage.removeListener(listener);
+          resolve();
+        }
+      };
+      chrome.runtime.onMessage.addListener(listener);
+      // Timeout after 5 seconds
+      setTimeout(() => resolve(), 5000);
     });
   }
 }

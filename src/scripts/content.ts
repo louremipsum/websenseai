@@ -1,3 +1,6 @@
+// Send ready message when content script loads
+chrome.runtime.sendMessage({ type: "CONTENT_SCRIPT_READY" });
+
 document.addEventListener("contextmenu", (event) => {
   const selectedHtml = window.getSelection()?.toString();
   if (selectedHtml) {
@@ -10,7 +13,13 @@ document.addEventListener("contextmenu", (event) => {
   }
 });
 
-chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+// Improve message listener to handle ping
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.type === "ping") {
+    sendResponse({ success: true });
+    return true;
+  }
+
   if (message.type === "convertToMarkdown") {
     try {
       const markdown = convertHtmlToMarkdown(message.html);
