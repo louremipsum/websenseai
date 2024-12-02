@@ -146,6 +146,10 @@ document.addEventListener("DOMContentLoaded", () => {
   // Update context display
   function updateContextPills() {
     elements.contextContainer.innerHTML = "";
+    const contextCount = document.querySelector(".context-count");
+    if (contextCount) {
+      contextCount.textContent = contexts.length.toString();
+    }
     if (contexts.length === 0) {
       elements.contextContainer.innerHTML =
         '<div class="no-context">No contexts attached</div>';
