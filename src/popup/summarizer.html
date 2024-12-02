@@ -49,7 +49,7 @@
         <button
           id="add-context"
           class="add-context-button"
-          title="Select new element"
+          title="Click to select text from the webpage to summarize"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -84,18 +84,28 @@
               <i class="lucide-trash-2"></i>
             </button>
           </div>
-          <button id="select-element" class="primary-button">
-            <i class="lucide-mouse-pointer-2"></i>
-            Select Element
-          </button>
         </section>
 
         <section id="options">
-          <h2>Summarization Options</h2>
+          <h2>
+            Summarization Options
+            <span
+              class="info-icon"
+              title="Customize how you want your summary to be generated"
+              >ⓘ</span
+            >
+          </h2>
           <div class="option-group">
-            <label for="summary-type">Summary Type</label>
+            <label for="summary-type">
+              Summary Type
+              <span
+                class="info-icon"
+                title="Key Points: Bullet points of main ideas&#13;Paragraph: Continuous text&#13;Bullet Points: Detailed list format"
+                >ⓘ</span
+              >
+            </label>
             <select id="summary-type">
-              <option value="key-points">Key Points</option>
+              <option value="key-points" selected>Key Points</option>
               <option value="paragraph">Paragraph</option>
               <option value="bullet-points">Bullet Points</option>
             </select>
@@ -103,7 +113,7 @@
           <div class="option-group">
             <label for="summary-format">Summary Format</label>
             <select id="summary-format">
-              <option value="markdown">Markdown</option>
+              <option value="markdown" selected>Markdown</option>
               <option value="plain-text">Plain Text</option>
             </select>
           </div>
@@ -111,39 +121,49 @@
             <label for="summary-length">Summary Length</label>
             <select id="summary-length">
               <option value="short">Short</option>
-              <option value="medium">Medium</option>
+              <option value="medium" selected>Medium</option>
               <option value="long">Long</option>
             </select>
           </div>
           <div class="option-group">
-            <label for="summary-style">Summary Style</label>
+            <label for="summary-style">
+              Summary Style
+              <span
+                class="info-icon"
+                title="Default: Standard summary&#13;Presentation: Optimized for slides&#13;Social: Brief, engaging format"
+                >ⓘ</span
+              >
+            </label>
             <select id="summary-style">
-              <option value="default">Default</option>
+              <option value="default" selected>Default</option>
               <option value="presentation">Presentation</option>
               <option value="social">Social Media</option>
             </select>
           </div>
-          <div class="option-group">
-            <label for="target-language">Target Language</label>
-            <select id="target-language">
-              <option value="en">English</option>
-              <option value="es">Spanish</option>
-              <option value="fr">French</option>
-              <option value="de">German</option>
-              <option value="it">Italian</option>
-              <option value="pt">Portuguese</option>
-              <option value="ru">Russian</option>
-              <option value="zh">Chinese</option>
-              <option value="ja">Japanese</option>
-              <option value="ko">Korean</option>
-            </select>
+        </section>
+
+        <section id="additional-context">
+          <div class="textarea-wrapper">
+            <label for="additional-context">
+              Additional Context
+              <span
+                class="info-icon"
+                title="Add optional context to guide the summarization"
+                >ⓘ</span
+              >
+            </label>
+            <textarea
+              id="additional-context-area"
+              rows="2"
+              placeholder="Add optional context to guide the summarization..."
+            ></textarea>
           </div>
         </section>
 
         <section id="output">
           <h2>Summary Output</h2>
           <div class="textarea-wrapper">
-            <textarea id="output" rows="8" readonly></textarea>
+            <textarea id="outputArea" rows="8"></textarea>
             <button
               id="copy-output"
               class="icon-button"
