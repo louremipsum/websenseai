@@ -66,23 +66,79 @@
       </div>
 
       <main>
-        <textarea
-          id="markdown-output"
-          placeholder="Selected element content will appear here..."
-        ></textarea>
+        <div class="mode-selector">
+          <button class="mode-btn active" data-mode="write">Write New</button>
+          <button class="mode-btn" data-mode="rewrite">Rewrite</button>
+        </div>
 
+        <!-- Write Mode Options -->
+        <div id="write-options" class="mode-options">
+          <div class="input-group">
+            <label for="write-template">Template:</label>
+            <select id="write-template">
+              <option value="paragraph" selected>General Text</option>
+              <optgroup label="Content Creation">
+                <option value="blog">Blog Post Draft</option>
+                <option value="social">Social Media Post</option>
+                <option value="review">Product Review</option>
+                <option value="bio">Author Biography</option>
+              </optgroup>
+            </select>
+          </div>
+
+          <div class="input-group">
+            <label for="write-tone">Tone:</label>
+            <select id="write-tone">
+              <option value="neutral" selected>Neutral</option>
+              <option value="formal">Formal</option>
+              <option value="casual">Casual</option>
+            </select>
+          </div>
+
+          <div class="input-group">
+            <label for="write-length">Length:</label>
+            <select id="write-length">
+              <option value="medium" selected>Medium</option>
+              <option value="short">Short</option>
+              <option value="long">Long</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Rewrite Mode Options -->
+        <div id="rewrite-options" class="mode-options hidden">
+          <div class="input-group">
+            <label for="rewrite-tone">Tone Adjustment:</label>
+            <select id="rewrite-tone">
+              <option value="as-is" selected>Keep Original Tone</option>
+              <option value="more-formal">More Formal</option>
+              <option value="more-casual">More Casual</option>
+            </select>
+          </div>
+
+          <div class="input-group">
+            <label for="rewrite-length">Length Adjustment:</label>
+            <select id="rewrite-length">
+              <option value="as-is" selected>Keep Original Length</option>
+              <option value="shorter">Make Shorter</option>
+              <option value="longer">Make Longer</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Common Options -->
         <div class="input-group">
-          <label for="summary-type">Summary Type:</label>
-          <select id="summary-type">
-            <option value="bullet">Bullet Points</option>
-            <option value="paragraph">Paragraph</option>
-            <option value="tweet">Tweet</option>
+          <label for="format">Output Format:</label>
+          <select id="format">
+            <option value="plain-text" selected>Plain Text</option>
+            <option value="markdown">Markdown</option>
           </select>
         </div>
+
         <div class="input-group">
           <label for="language">Language:</label>
           <select id="language">
-            <option value="en">English</option>
+            <option value="en" selected>English</option>
             <option value="es">Spanish</option>
             <option value="fr">French</option>
             <option value="de">German</option>
@@ -95,8 +151,75 @@
           </select>
         </div>
 
+        <div class="input-group context-group">
+          <div class="label-with-info">
+            <label for="context"
+              >Additional Context: <span class="required">*</span></label
+            >
+            <div class="info-tooltip">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <path d="M12 16v-4" />
+                <path d="M12 8h.01" />
+              </svg>
+              <span class="tooltip-text"
+                >Add context or instructions to guide the AI. For example:
+                "Write in a professional tone" or "Explain technical concepts
+                simply".</span
+              >
+            </div>
+          </div>
+          <textarea
+            id="context"
+            placeholder="Add relevant context or specific instructions here... (Required)"
+            required
+          ></textarea>
+        </div>
+
+        <div class="input-group">
+          <div class="label-with-info">
+            <label for="markdown-output">Input Text:</label>
+            <div class="info-tooltip">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <path d="M12 16v-4" />
+                <path d="M12 8h.01" />
+              </svg>
+              <span class="tooltip-text"
+                >Enter or select the text you want to work with. You can use the
+                select button above to grab text from the webpage.</span
+              >
+            </div>
+          </div>
+          <textarea
+            id="markdown-output"
+            placeholder="Enter text here or use select button to grab text from webpage..."
+          ></textarea>
+        </div>
+
         <button id="generate-button" class="primary-button">
           <svg
+            class="generate-icon"
             xmlns="http://www.w3.org/2000/svg"
             width="24"
             height="24"
@@ -106,7 +229,6 @@
             stroke-width="2"
             stroke-linecap="round"
             stroke-linejoin="round"
-            class="lucide lucide-wand-2"
           >
             <path
               d="m21.64 3.64-1.28-1.28a1.21 1.21 0 0 0-1.72 0L2.36 18.64a1.21 1.21 0 0 0 0 1.72l1.28 1.28a1.2 1.2 0 0 0 1.72 0L21.64 5.36a1.2 1.2 0 0 0 0-1.72Z"
@@ -118,6 +240,20 @@
             <path d="M7 8H3" />
             <path d="M21 16h-4" />
             <path d="M11 3H9" />
+          </svg>
+          <svg
+            class="spinner-icon hidden"
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M21 12a9 9 0 1 1-6.219-8.56" />
           </svg>
           Generate
         </button>
