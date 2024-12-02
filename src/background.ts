@@ -104,13 +104,19 @@ async function handleElementSelected(
       throw new Error("Failed to convert HTML to markdown");
     }
 
-    // Store the selection instead of sending message
+    // Store the selection under 'elementSelection' key
     await chrome.storage.local.set({
       elementSelection: {
         html: message.html,
         markdown: response.markdown,
         timestamp: Date.now(),
       },
+    });
+
+    // Optionally, send a message to the popup script
+    chrome.runtime.sendMessage({
+      type: "elementSelected",
+      markdown: response.markdown,
     });
 
     chrome.notifications.create({
