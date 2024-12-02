@@ -76,7 +76,7 @@ document.addEventListener("DOMContentLoaded", () => {
     pill.className = `context-pill ${context.isActive ? "active" : ""}`;
     pill.innerHTML = `
       <div class="context-info">
-        <span class="context-title">Context ${context.markdown.slice(-4)}</span>
+        <span class="context-title">${context.markdown.slice(0, 30)}</span>
         <div class="context-actions">
           <button class="toggle-context ${
             context.isActive ? "active" : ""
