@@ -31,6 +31,21 @@
   }
 }
 
+.spinner-icon {
+  animation: spin 1s linear infinite;
+}
+
+.generate-icon,
+.spinner-icon {
+  width: 20px;
+  height: 20px;
+  margin-right: 5px;
+}
+
+.hidden {
+  display: none;
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -179,6 +194,14 @@ textarea:focus {
   box-shadow: 0 0 0 2px var(--ring);
 }
 
+textarea:required {
+  border-color: var(--input);
+}
+
+textarea:required:invalid {
+  border-color: #ef4444;
+}
+
 .input-group {
   display: flex;
   flex-direction: column;
@@ -276,4 +299,111 @@ select:focus {
   background-color: var(--secondary);
   filter: brightness(95%);
   transform: translateY(-2px);
+}
+
+.mode-selector {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.mode-btn {
+  flex: 1;
+  padding: 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--background);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.mode-btn.active {
+  background: var(--primary);
+  color: var(--primary-foreground);
+  border-color: var(--primary);
+}
+
+.context-group {
+  transition: all 0.3s ease;
+}
+
+.context-group.hidden {
+  display: none;
+}
+
+#template {
+  margin-bottom: 1rem;
+}
+
+.template-options {
+  display: none;
+}
+
+optgroup {
+  font-weight: 600;
+  color: var(--muted-foreground);
+  font-size: 0.8rem;
+}
+
+#template-specific-options {
+  display: none;
+}
+
+.mode-options {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem;
+  margin-bottom: 1rem;
+  background-color: var(--background);
+  transition: all 0.3s ease;
+}
+
+.mode-options.hidden {
+  display: none;
+}
+
+.mode-options .input-group:not(:last-child) {
+  margin-bottom: 0.75rem;
+}
+
+.label-with-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.info-tooltip {
+  position: relative;
+  display: inline-flex;
+  color: var(--muted-foreground);
+  cursor: help;
+}
+
+.info-tooltip:hover .tooltip-text {
+  visibility: visible;
+  opacity: 1;
+}
+
+.tooltip-text {
+  visibility: hidden;
+  opacity: 0;
+  width: 200px;
+  background-color: var(--foreground);
+  color: var(--background);
+  text-align: center;
+  padding: 0.5rem;
+  border-radius: var(--radius);
+  position: absolute;
+  z-index: 1;
+  bottom: 125%;
+  left: 50%;
+  transform: translateX(-50%);
+  transition: opacity 0.2s;
+  font-size: 0.75rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.required {
+  color: #ef4444;
+  margin-left: 0.25rem;
 }
