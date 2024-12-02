@@ -1,3 +1,31 @@
+type AIWriterTone = "formal" | "neutral" | "casual";
+type AIWriterFormat = "plain-text" | "markdown";
+type AIWriterLength = "short" | "medium" | "long";
+type AIRewriterTone = "as-is" | "more-formal" | "more-casual";
+type AIRewriterFormat = "as-is" | "plain-text" | "markdown";
+type AIRewriterLength = "as-is" | "shorter" | "longer";
+
+// Add new type definitions
+type TemplateType =
+  | "blog"
+  | "social"
+  | "review"
+  | "bio"
+  | "data-explain"
+  | "pros-cons"
+  | "technical"
+  | "eli5"
+  | "formal"
+  | "casual"
+  | "shorter"
+  | "constructive";
+
+type TemplateOptions = {
+  dataType?: "time-series" | "comparison" | "statistics";
+  bioType?: "professional" | "academic" | "creative";
+  audience?: "child" | "teen" | "adult";
+};
+
 document.addEventListener("DOMContentLoaded", async () => {
   const backButton = document.getElementById(
     "back-button"
@@ -8,9 +36,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   const markdownOutput = document.getElementById(
     "markdown-output"
   ) as HTMLTextAreaElement;
-  const summaryType = document.getElementById(
-    "summary-type"
-  ) as HTMLSelectElement;
   const output = document.getElementById("output") as HTMLTextAreaElement;
   const copyButton = document.getElementById(
     "copy-output"
@@ -48,8 +73,28 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   generateButton.addEventListener("click", () => {
     const selectedText = markdownOutput.value;
+    const context = (
+      document.getElementById("context") as HTMLTextAreaElement
+    ).value.trim();
+
+    if (!context) {
+      alert(
+        "Please provide additional context - this is required for the AI to understand how to process your text."
+      );
+      return;
+    }
+
     if (selectedText) {
-      createContent(selectedText, summaryType.value);
+      const mode = document
+        .querySelector(".mode-btn.active")
+        ?.getAttribute("data-mode");
+      // Only get template for write mode
+      const template =
+        mode === "write"
+          ? (document.getElementById("write-template") as HTMLSelectElement)
+              .value
+          : undefined;
+      createContent(selectedText, template);
     }
   });
 
@@ -71,9 +116,20 @@ document.addEventListener("DOMContentLoaded", async () => {
         selectedElement: markdownOutput.value,
         originalHtml: message.html,
       });
-      const text = message.html.replace(/<[^>]*>/g, " ").trim();
 
-      createContent(text, summaryType.value);
+      // Get the current mode and template for processing
+      const mode = document
+        .querySelector(".mode-btn.active")
+        ?.getAttribute("data-mode");
+      const template =
+        mode === "write"
+          ? (document.getElementById("write-template") as HTMLSelectElement)
+              .value
+          : (document.getElementById("rewrite-template") as HTMLSelectElement)
+              .value;
+
+      const text = message.html.replace(/<[^>]*>/g, " ").trim();
+      createContent(text, template);
     }
   });
 
@@ -95,100 +151,232 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   resetButton.addEventListener("click", () => {
+    if (activeController) {
+      activeController.abort();
+    }
     output.value = "";
     chrome.storage.local.remove(["selectedElement", "processedContent"]);
   });
 
   closeButton.addEventListener("click", () => {
+    if (activeController) {
+      activeController.abort();
+    }
     window.close();
   });
+
+  // Remove duplicated mode switching logic and keep only one version
+  const modeBtns = document.querySelectorAll(".mode-btn");
+  const contextGroup = document.querySelector(".context-group");
+
+  modeBtns.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      modeBtns.forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+
+      const writeOptions = document.getElementById("write-options");
+      const rewriteOptions = document.getElementById("rewrite-options");
+
+      if (btn.getAttribute("data-mode") === "rewrite") {
+        writeOptions?.classList.add("hidden");
+        rewriteOptions?.classList.remove("hidden");
+        contextGroup?.classList.remove("hidden");
+      } else {
+        writeOptions?.classList.remove("hidden");
+        rewriteOptions?.classList.add("hidden");
+        contextGroup?.classList.add("hidden");
+      }
+    });
+  });
+
+  // Update template handling
+  const writeTemplate = document.getElementById(
+    "write-template"
+  ) as HTMLSelectElement;
+  const rewriteTemplate = document.getElementById(
+    "rewrite-template"
+  ) as HTMLSelectElement;
+
+  if (writeTemplate) {
+    writeTemplate.addEventListener("change", () => {
+      const template = writeTemplate.value as TemplateType;
+      const tone = document.getElementById("write-tone") as HTMLSelectElement;
+
+      switch (template) {
+        case "formal":
+        case "technical":
+          tone.value = "formal";
+          break;
+        case "casual":
+        case "social":
+          tone.value = "casual";
+          break;
+        case "bio":
+        case "data-explain":
+          tone.value = "neutral";
+          break;
+      }
+    });
+  }
+
+  if (rewriteTemplate) {
+    rewriteTemplate.addEventListener("change", () => {
+      const template = rewriteTemplate.value as TemplateType;
+      const tone = document.getElementById("rewrite-tone") as HTMLSelectElement;
+
+      switch (template) {
+        case "formal":
+          tone.value = "more-formal";
+          break;
+        case "casual":
+          tone.value = "more-casual";
+          break;
+        case "eli5":
+          tone.value = "more-casual";
+          break;
+      }
+    });
+  }
 });
 
-function setLoadingState(isLoading: boolean) {
+function setLoadingStateCreate(isLoading: boolean) {
   const generateButton = document.getElementById(
     "generate-button"
   ) as HTMLButtonElement;
-  const spinnerIcon = generateButton.querySelector("svg");
+  const generateIcon = generateButton.querySelector(".generate-icon");
+  const spinnerIcon = generateButton.querySelector(".spinner-icon");
+
   if (isLoading) {
     generateButton.disabled = true;
+    generateIcon?.classList.add("hidden");
     spinnerIcon?.classList.remove("hidden");
   } else {
     generateButton.disabled = false;
+    generateIcon?.classList.remove("hidden");
     spinnerIcon?.classList.add("hidden");
   }
 }
 
-async function createContent(text: string, type: string) {
-  setLoadingState(true);
+let activeController: AbortController | null = null;
+
+async function appendToOutput(chunk: string) {
   const output = document.getElementById("output") as HTMLTextAreaElement;
-  const targetLanguage = (
-    document.getElementById("target-language") as HTMLSelectElement
-  ).value;
+  output.value += chunk;
+  output.scrollTop = output.scrollHeight;
+}
+
+// Add template prompts
+const templatePrompts: Record<string, string> = {
+  paragraph: "Write a clear and well-structured paragraph.",
+  blog: "Write a blog post that is engaging and informative, with clear sections and a natural flow.",
+  social:
+    "Create a social media post that is concise, engaging, and optimized for social sharing.",
+  review:
+    "Write a balanced review that highlights both pros and cons, with specific details and reasoning.",
+  bio: "Create a professional biography that effectively presents achievements and experience.",
+  "data-explain":
+    "Analyze and explain the data in a clear, structured way, highlighting key insights and trends.",
+};
+
+async function createContent(text: string, template?: string) {
+  setLoadingStateCreate(true);
+  const output = document.getElementById("output") as HTMLTextAreaElement;
+  output.value = ""; // Clear previous output
+
+  if (activeController) {
+    activeController.abort();
+  }
+
+  activeController = new AbortController();
+  const mode = document
+    .querySelector(".mode-btn.active")
+    ?.getAttribute("data-mode");
+  const format = (document.getElementById("format") as HTMLSelectElement)
+    .value as AIWriterFormat;
+  const context = (document.getElementById("context") as HTMLTextAreaElement)
+    .value;
+
+  let accumulatedResponse = "";
+  let previousChunk = "";
 
   try {
-    // Check API availability
-    // @ts-ignore
-    if (!("translation" in self)) {
-      throw new Error("Translation API not supported");
-    }
+    if (mode === "write") {
+      const tone = (document.getElementById("write-tone") as HTMLSelectElement)
+        .value as AIWriterTone;
+      const length = (
+        document.getElementById("write-length") as HTMLSelectElement
+      ).value as AIWriterLength;
+      const template = (
+        document.getElementById("write-template") as HTMLSelectElement
+      ).value as TemplateType;
 
-    // Initialize AI model
-    const { available } =
       // @ts-ignore
-      await self.ai.languageModel.capabilities();
-    if (available !== "readily") {
-      throw new Error("Gemini Nano model is not readily available");
-    }
-
-    // @ts-ignore
-    const session = await self.ai.languageModel.create({
-      systemPrompt:
-        type === "social"
-          ? "You are a social media content creator. Create engaging, concise posts."
-          : "You are a presentation creator. Create clear, structured bullet points.",
-      topK: 6,
-      temperature: type === "social" ? 0.8 : 0.4,
-    });
-
-    // Process based on type
-    const promptText =
-      type === "social"
-        ? `Create a social media post (max 240 chars) with hashtags from this text:\n${text}`
-        : type === "presentation"
-        ? `Create presentation bullet points from this text:\n${text}`
-        : `Summarize this text in a concise manner:\n${text}`;
-
-    // Get AI response
-    const stream = await session.promptStreaming(promptText);
-    let processedText = "";
-    let previousChunk = "";
-
-    for await (const chunk of stream) {
-      const newChunk = chunk.startsWith(previousChunk)
-        ? chunk.slice(previousChunk.length)
-        : chunk;
-      processedText += newChunk;
-      previousChunk = chunk;
-    }
-
-    // Skip translation for English
-    if (targetLanguage === "en") {
-      output.value = processedText;
-    } else {
-      // @ts-ignore
-      const translator = await self.translation.createTranslator({
-        sourceLanguage: "en",
-        targetLanguage,
+      const writer = await ai.writer.create({
+        tone,
+        format,
+        length,
+        signal: activeController.signal,
+        sharedContext: context,
       });
-      output.value = await translator.translate(processedText);
-    }
 
-    session.destroy();
+      // Combine user context with template prompt
+      const templatePrompt = templatePrompts[template] || "";
+
+      const stream = writer.writeStreaming(text, {
+        context: templatePrompt,
+        signal: activeController.signal,
+      });
+
+      for await (const chunk of stream) {
+        const newChunk = chunk.startsWith(previousChunk)
+          ? chunk.slice(previousChunk.length)
+          : chunk;
+
+        accumulatedResponse += newChunk;
+        await appendToOutput(newChunk);
+        previousChunk = chunk;
+      }
+    } else {
+      const tone = (
+        document.getElementById("rewrite-tone") as HTMLSelectElement
+      ).value as AIRewriterTone;
+      const length = (
+        document.getElementById("rewrite-length") as HTMLSelectElement
+      ).value as AIRewriterLength;
+
+      // @ts-ignore
+      const rewriter = await ai.rewriter.create({
+        signal: activeController.signal,
+        sharedContext: context,
+      });
+
+      const stream = rewriter.rewriteStreaming(text, {
+        tone,
+        format,
+        length,
+        signal: activeController.signal,
+      });
+
+      for await (const chunk of stream) {
+        const newChunk = chunk.startsWith(previousChunk)
+          ? chunk.slice(previousChunk.length)
+          : chunk;
+
+        accumulatedResponse += newChunk;
+        await appendToOutput(newChunk);
+        previousChunk = chunk;
+      }
+    }
   } catch (err) {
-    output.value = `Error: ${
-      err instanceof Error ? err.message : "Unknown error occurred"
-    }`;
+    if (err instanceof Error && err.name === "AbortError") {
+      output.value = "Generation cancelled";
+    } else {
+      output.value = `Error: ${
+        err instanceof Error ? err.message : "Unknown error occurred"
+      }`;
+    }
   } finally {
-    setLoadingState(false);
+    activeController = null;
+    setLoadingStateCreate(false);
   }
 }
