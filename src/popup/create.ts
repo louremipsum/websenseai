@@ -279,15 +279,105 @@ const templatePrompts: Record<string, string> = {
     "Analyze and explain the data in a clear, structured way, highlighting key insights and trends.",
 };
 
+// Add new helper functions for translation
+async function translateText(text: string, targetLang: string) {
+  // @ts-ignore
+  const translator = await self.translation.createTranslator({
+    sourceLanguage: "en",
+    targetLanguage: targetLang,
+  });
+  return await translator.translate(text);
+}
+
+async function processWithTranslation(text: string, template?: string) {
+  const output = document.getElementById("output") as HTMLTextAreaElement;
+  const mode = document
+    .querySelector(".mode-btn.active")
+    ?.getAttribute("data-mode");
+  const format = (document.getElementById("format") as HTMLSelectElement)
+    .value as AIWriterFormat;
+  const context = (document.getElementById("context") as HTMLTextAreaElement)
+    .value;
+  const language = (document.getElementById("language") as HTMLSelectElement)
+    .value;
+
+  try {
+    let result = "";
+
+    if (mode === "write") {
+      const tone = (document.getElementById("write-tone") as HTMLSelectElement)
+        .value as AIWriterTone;
+      const length = (
+        document.getElementById("write-length") as HTMLSelectElement
+      ).value as AIWriterLength;
+
+      // @ts-ignore
+      const writer = await ai.writer.create({
+        tone,
+        format,
+        length,
+        sharedContext: context,
+      });
+
+      const templatePrompt = templatePrompts[template || ""] || "";
+      result = await writer.write(text, {
+        context: templatePrompt,
+      });
+    } else {
+      const tone = (
+        document.getElementById("rewrite-tone") as HTMLSelectElement
+      ).value as AIRewriterTone;
+      const length = (
+        document.getElementById("rewrite-length") as HTMLSelectElement
+      ).value as AIRewriterLength;
+
+      // @ts-ignore
+      const rewriter = await ai.rewriter.create({
+        sharedContext: context,
+      });
+
+      result = await rewriter.rewrite(text, {
+        tone,
+        format,
+        length,
+      });
+    }
+
+    // Translate the result if language is not English
+    if (language !== "en") {
+      result = await translateText(result, language);
+    }
+
+    output.value = result;
+  } catch (err) {
+    output.value = `Error: ${
+      err instanceof Error ? err.message : "Unknown error occurred"
+    }`;
+  } finally {
+    setLoadingStateCreate(false);
+  }
+}
+
+// Modify createContent to handle streaming vs non-streaming
 async function createContent(text: string, template?: string) {
   setLoadingStateCreate(true);
   const output = document.getElementById("output") as HTMLTextAreaElement;
-  output.value = ""; // Clear previous output
+  output.value = "";
 
   if (activeController) {
     activeController.abort();
   }
 
+  const language = (document.getElementById("language") as HTMLSelectElement)
+    .value;
+
+  // Use non-streaming approach for non-English languages
+  if (language !== "en") {
+    await processWithTranslation(text, template);
+    return;
+  }
+
+  // Original streaming logic for English
   activeController = new AbortController();
   const mode = document
     .querySelector(".mode-btn.active")
