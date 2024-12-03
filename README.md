@@ -48,6 +48,8 @@ WebSense AI is a Chrome extension that leverages Chrome built-in AI APIs to anal
 
 Turn on All experimental flag necessary for Prompt API, Write/Rewrite API, Summarization API and Translation API.
 
+Open "chrome://on-device-translation-internals/" and then enable "en - es", "en - hi", "en - fr" language packs
+
 ## Usage
 
 1. Click on the WebSense AI extension icon in the Chrome toolbar.
