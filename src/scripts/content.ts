@@ -17,8 +17,53 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       sendResponse({ success: false, error: (error as Error).message });
     }
   }
+
+  if (message.type === "startElementSelection") {
+    enableElementSelection();
+    sendResponse({ success: true });
+    return true;
+  }
+
   return true; // Keep message channel open for async response
 });
+
+// Move `enableElementSelection` into the content script context
+function enableElementSelection() {
+  let hoveredElement: Element | null = null;
+
+  function handleMouseOver(event: MouseEvent) {
+    event.stopPropagation();
+    if (hoveredElement) {
+      hoveredElement.classList.remove("element-highlight");
+    }
+    hoveredElement = event.target as Element;
+    hoveredElement.classList.add("element-highlight");
+  }
+
+  function handleClick(event: MouseEvent) {
+    event.preventDefault();
+    event.stopPropagation();
+    if (hoveredElement) {
+      const html = hoveredElement.outerHTML;
+      chrome.runtime.sendMessage({
+        type: "elementSelected",
+        html: html,
+      });
+      cleanup();
+    }
+  }
+
+  function cleanup() {
+    document.removeEventListener("mouseover", handleMouseOver, true);
+    document.removeEventListener("click", handleClick, true);
+    if (hoveredElement) {
+      hoveredElement.classList.remove("element-highlight");
+    }
+  }
+
+  document.addEventListener("mouseover", handleMouseOver, true);
+  document.addEventListener("click", handleClick, true);
+}
 
 /**
  * Converts an HTML string to a Markdown string.
