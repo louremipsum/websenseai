@@ -110,8 +110,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       chrome.storage.local.set({ lastError: message.error });
     }
     if (message.type === "elementSelected") {
-      markdownOutput.value =
-        message.markdown || convertHtmlToMarkdown(message.html);
+      markdownOutput.value = message.markdown;
       chrome.storage.local.set({
         selectedElement: markdownOutput.value,
         originalHtml: message.html,
@@ -128,7 +127,9 @@ document.addEventListener("DOMContentLoaded", async () => {
           : (document.getElementById("rewrite-template") as HTMLSelectElement)
               .value;
 
-      const text = message.html.replace(/<[^>]*>/g, " ").trim();
+      const text = message.html
+        ? message.html.replace(/<[^>]*>/g, " ").trim()
+        : "";
       createContent(text, template);
     }
   });
