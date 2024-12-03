@@ -181,11 +181,9 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (btn.getAttribute("data-mode") === "rewrite") {
         writeOptions?.classList.add("hidden");
         rewriteOptions?.classList.remove("hidden");
-        contextGroup?.classList.remove("hidden");
       } else {
         writeOptions?.classList.remove("hidden");
         rewriteOptions?.classList.add("hidden");
-        contextGroup?.classList.add("hidden");
       }
     });
   });

@@ -327,10 +327,6 @@ select:focus {
   transition: all 0.3s ease;
 }
 
-.context-group.hidden {
-  display: none;
-}
-
 #template {
   margin-bottom: 1rem;
 }
