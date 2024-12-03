@@ -56,6 +56,11 @@ Open "chrome://on-device-translation-internals/" and then enable "en - es", "en 
 2. Use the popup interface to select elements, generate summaries, or create new content.
 3. Customize the options as needed and view the results directly in the popup.
 
+![1](https://github.com/user-attachments/assets/9ef74670-726e-426f-96c7-065ec578b237)
+![2](https://github.com/user-attachments/assets/a345e503-c350-48ee-8759-2fd4f4e6af24)
+![3](https://github.com/user-attachments/assets/aa6ac4aa-5469-4cd0-9943-ab2913ac6310)
+![4](https://github.com/user-attachments/assets/67798d80-47ce-4970-9482-53fe5da813bc)
+
 ## Project Structure
 
 - `src/`: Source code for the extension
