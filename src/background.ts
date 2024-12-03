@@ -60,12 +60,9 @@ async function handleDOMSelection(
       css: getHighlightCSS(),
     });
 
-    // Inject selection logic
-    await chrome.scripting.executeScript({
-      target: { tabId: activeTab.id },
-      func: enableElementSelection,
-    });
-    console.log("enableElementSelection in DOM selection");
+    // Send message to content script to start element selection
+    chrome.tabs.sendMessage(activeTab.id, { type: "startElementSelection" });
+
     sendResponse({ success: true });
   } catch (error) {
     console.error("Error in DOM selection:", error);
@@ -144,11 +141,20 @@ async function handleElementSelected(
       },
     });
 
-    // Optionally, send a message to the popup script
-    chrome.runtime.sendMessage({
-      type: "elementSelected",
-      markdown: response.markdown,
-    });
+    // Send message to the popup script, handle the possibility of no receiver
+    chrome.runtime.sendMessage(
+      {
+        type: "elementSelected",
+        markdown: response.markdown,
+      },
+      (response) => {
+        if (chrome.runtime.lastError) {
+          // No receiver, but that's okay
+        } else {
+          // Handle response if needed
+        }
+      }
+    );
 
     chrome.notifications.create({
       type: "basic",
@@ -208,7 +214,7 @@ async function injectContentScript(tabId: number): Promise<void> {
     console.log("Content script already injected");
   } catch (error) {
     console.log("Injecting content script");
-    // Inject the script and wait for it to be ready
+    // Inject the script
     await chrome.scripting.executeScript({
       target: { tabId },
       files: ["scripts/content.js"],
@@ -264,67 +270,4 @@ function getHighlightCSS(): string {
       background-color: rgba(33, 150, 243, 0.1) !important;
     }
   `;
-}
-
-/**
- * Enables the selection of elements on the webpage by adding event listeners for mouseover and click events.
- * When an element is hovered over, it gets highlighted with a specific CSS class.
- * When an element is clicked, its outer HTML is sent to the background script via a Chrome runtime message.
- *
- * The function also sets up a listener for "ping" messages from the background script to respond with a success message.
- *
- * @remarks
- * - The function adds event listeners to the document for mouseover and click events.
- * - The hovered element is highlighted with the "element-highlight" CSS class.
- * - On click, the outer HTML of the hovered element is sent to the background script.
- * - The function cleans up event listeners and removes the highlight class when an element is selected.
- *
- * @example
- * // To use this function, simply call it in your content script:
- * enableElementSelection();
- */
-function enableElementSelection() {
-  let hoveredElement: Element | null = null;
-
-  function handleMouseOver(event: MouseEvent) {
-    event.stopPropagation();
-    if (hoveredElement) {
-      hoveredElement.classList.remove("element-highlight");
-    }
-    hoveredElement = event.target as Element;
-    hoveredElement.classList.add("element-highlight");
-  }
-
-  function handleClick(event: MouseEvent) {
-    event.preventDefault();
-    event.stopPropagation();
-    if (hoveredElement) {
-      const html = hoveredElement.outerHTML;
-      chrome.runtime.sendMessage({
-        type: "elementSelected",
-        html: html,
-      });
-      cleanup();
-    }
-  }
-
-  function cleanup() {
-    document.removeEventListener("mouseover", handleMouseOver, true);
-    document.removeEventListener("click", handleClick, true);
-    if (hoveredElement) {
-      hoveredElement.classList.remove("element-highlight");
-    }
-  }
-
-  // Add ping response handler
-  chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
-    if (message.type === "ping") {
-      sendResponse({ success: true });
-      return true;
-    }
-    return false;
-  });
-
-  document.addEventListener("mouseover", handleMouseOver, true);
-  document.addEventListener("click", handleClick, true);
 }
