@@ -76,6 +76,37 @@ async function handleDOMSelection(
   }
 }
 
+/**
+ * Handles the selection of an HTML element, converts it to markdown, and stores the selection.
+ *
+ * @param message - The message containing the HTML to be converted.
+ * @param sendResponse - A callback function to send the response back to the sender.
+ *
+ * @throws Will throw an error if no active tab is found, if the content script is not connected,
+ *         or if the HTML to markdown conversion fails.
+ *
+ * @remarks
+ * This function performs the following steps:
+ * 1. Queries the active tab in the current window.
+ * 2. Verifies the connection to the content script.
+ * 3. Sends a message to the content script to convert the HTML to markdown.
+ * 4. Stores the HTML and markdown in local storage with a timestamp.
+ * 5. Optionally sends a message to the popup script with the markdown.
+ * 6. Creates a notification to inform the user.
+ *
+ * @example
+ * chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+ *   if (message.type === "elementSelected") {
+ *     handleElementSelected(message, sendResponse);
+ *   }
+ * });
+ *
+ * @param message.html - The HTML string to be converted to markdown.
+ *
+ * @param sendResponse.success - Indicates whether the operation was successful.
+ * @param sendResponse.markdown - The converted markdown string if the operation was successful.
+ * @param sendResponse.error - The error message if the operation failed.
+ */
 async function handleElementSelected(
   message: any,
   sendResponse: (response: MessageResponse) => void
@@ -139,6 +170,15 @@ async function handleElementSelected(
   }
 }
 
+/**
+ * Checks if the given URL is restricted.
+ *
+ * A URL is considered restricted if it is either undefined or starts with
+ * "chrome://", "edge://", or "about:".
+ *
+ * @param url - The URL to check. If not provided, the function will return true.
+ * @returns `true` if the URL is restricted, `false` otherwise.
+ */
 function isRestrictedUrl(url?: string): boolean {
   if (!url) return true;
   return (
@@ -148,6 +188,19 @@ function isRestrictedUrl(url?: string): boolean {
   );
 }
 
+/**
+ * Injects a content script into the specified tab if it is not already injected.
+ *
+ * This function first attempts to send a "ping" message to the content script
+ * to check if it is already present. If the content script responds, it logs
+ * that the content script is already injected. If the content script does not
+ * respond, it injects the content script and waits for a "CONTENT_SCRIPT_READY"
+ * message indicating that the content script is ready.
+ *
+ * @param {number} tabId - The ID of the tab where the content script should be injected.
+ * @returns {Promise<void>} A promise that resolves when the content script is confirmed to be injected and ready.
+ * @throws Will throw an error if the script injection fails.
+ */
 async function injectContentScript(tabId: number): Promise<void> {
   try {
     // First try to ping to check if content script is already there
@@ -179,6 +232,16 @@ async function injectContentScript(tabId: number): Promise<void> {
   }
 }
 
+/**
+ * Verifies the connection to a content script in the specified tab.
+ *
+ * This function sends a "ping" message to the content script running in the given tab.
+ * If the message is successfully sent and a response is received, the function returns `true`.
+ * If an error occurs (e.g., the content script is not present or the tab is invalid), the function returns `false`.
+ *
+ * @param {number} tabId - The ID of the tab to which the message should be sent.
+ * @returns {Promise<boolean>} A promise that resolves to `true` if the content script is connected, or `false` otherwise.
+ */
 async function verifyContentScriptConnection(tabId: number): Promise<boolean> {
   try {
     await chrome.tabs.sendMessage(tabId, { type: "ping" });
@@ -188,6 +251,11 @@ async function verifyContentScriptConnection(tabId: number): Promise<boolean> {
   }
 }
 
+/**
+ * Generates a CSS string for highlighting elements.
+ *
+ * @returns {string} A string containing CSS rules for highlighting elements with a blue outline and a light blue background.
+ */
 function getHighlightCSS(): string {
   return `
     .element-highlight {
@@ -198,6 +266,23 @@ function getHighlightCSS(): string {
   `;
 }
 
+/**
+ * Enables the selection of elements on the webpage by adding event listeners for mouseover and click events.
+ * When an element is hovered over, it gets highlighted with a specific CSS class.
+ * When an element is clicked, its outer HTML is sent to the background script via a Chrome runtime message.
+ *
+ * The function also sets up a listener for "ping" messages from the background script to respond with a success message.
+ *
+ * @remarks
+ * - The function adds event listeners to the document for mouseover and click events.
+ * - The hovered element is highlighted with the "element-highlight" CSS class.
+ * - On click, the outer HTML of the hovered element is sent to the background script.
+ * - The function cleans up event listeners and removes the highlight class when an element is selected.
+ *
+ * @example
+ * // To use this function, simply call it in your content script:
+ * enableElementSelection();
+ */
 function enableElementSelection() {
   let hoveredElement: Element | null = null;
 

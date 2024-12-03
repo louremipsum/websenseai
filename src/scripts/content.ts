@@ -32,6 +32,28 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   return true; // Keep message channel open for async response
 });
 
+/**
+ * Converts an HTML string to a Markdown string.
+ *
+ * This function parses the provided HTML string and converts its structure
+ * and content into a Markdown formatted string. It handles various HTML
+ * elements such as headings, paragraphs, strong/bold, emphasis/italic,
+ * links, images, code blocks, lists, blockquotes, and line breaks.
+ *
+ * @param html - The HTML string to be converted to Markdown.
+ * @returns The converted Markdown string.
+ *
+ * @example
+ * ```typescript
+ * const html = "<h1>Title</h1><p>This is a <strong>paragraph</strong>.</p>";
+ * const markdown = convertHtmlToMarkdown(html);
+ * console.log(markdown);
+ * // Output:
+ * // # Title
+ * //
+ * // This is a **paragraph**.
+ * ```
+ */
 function convertHtmlToMarkdown(html: string): string {
   const parser = new DOMParser();
   const doc = parser.parseFromString(html, "text/html");
