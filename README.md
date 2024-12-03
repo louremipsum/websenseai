@@ -1,5 +1,5 @@
 # WebSense AI
-
+![Know](https://github.com/user-attachments/assets/31fb975a-0319-45ce-aa8b-4d9ff002894e)
 WebSense AI is a Chrome extension that leverages Chrome built-in AI APIs to analyze and understand the content on your screen. It provides various functionalities such as summarizing content, creating new content, and converting HTML to Markdown and chat regrading the content your the screen.
 
 ## Features
