@@ -66,6 +66,25 @@ document.addEventListener("DOMContentLoaded", () => {
     },
   ];
 
+  // Add new function to save history
+  async function saveHistory(history: ChatMessage[]): Promise<void> {
+    await chrome.storage.local.set({ chatHistory: history });
+  }
+
+  // Add new function to load history
+  async function loadHistory(): Promise<void> {
+    const result = await chrome.storage.local.get("chatHistory");
+    if (result.chatHistory) {
+      messageHistory = result.chatHistory;
+      // Replay messages in UI
+      messageHistory.forEach((msg) => {
+        if (msg.role !== "system") {
+          addMessageToChat(msg.sender, msg.content);
+        }
+      });
+    }
+  }
+
   // Context management functions
   function updateContextState(newContexts: Context[]) {
     console.log("Updating contexts:", newContexts);
@@ -249,6 +268,7 @@ document.addEventListener("DOMContentLoaded", () => {
       role: "user",
       content: message,
     });
+    await saveHistory(messageHistory);
 
     let accumulatedResponse = "";
     let previousChunk = "";
@@ -303,6 +323,7 @@ document.addEventListener("DOMContentLoaded", () => {
         role: "assistant",
         content: accumulatedResponse,
       });
+      await saveHistory(messageHistory);
 
       // Trim history if it gets too long (keeping last N messages)
       const MAX_HISTORY = 10; // Adjust based on token limits
@@ -312,6 +333,7 @@ document.addEventListener("DOMContentLoaded", () => {
           messageHistory[0], // Keep system prompt
           ...messageHistory.slice(-MAX_HISTORY),
         ];
+        await saveHistory(messageHistory);
       }
 
       session.destroy();
@@ -452,7 +474,7 @@ ${activeContexts
     }
   });
 
-  function resetChat(): void {
+  async function resetChat(): Promise<void> {
     elements.chatMessages.innerHTML = "";
     // Reset history with fresh system prompt
     messageHistory = [
@@ -462,6 +484,7 @@ ${activeContexts
         content: "You are a helpful and friendly assistant.",
       },
     ];
+    await saveHistory(messageHistory);
   }
 
   function exportChat(): void {
@@ -482,4 +505,7 @@ ${activeContexts
     a.click();
     URL.revokeObjectURL(url);
   }
+
+  // Load chat history after elements are validated
+  loadHistory();
 });
